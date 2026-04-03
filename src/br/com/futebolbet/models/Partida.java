@@ -25,4 +25,17 @@ public class Partida {
     public LocalDateTime getDataHora() {
         return dataHora;
     }
+
+    public Clube getClubeCasa() {
+        return clubeCasa;
+    }
+
+    public Clube getClubeFora() {
+        return clubeFora;
+    }
+
+    @Override
+    public String toString() {
+        return clubeCasa.getNome() + " x " + clubeFora.getNome() + " (" + dataHora + ")";
+    }
 }
