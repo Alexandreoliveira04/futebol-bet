@@ -10,4 +10,9 @@ public class Clube {
     public String getNome(){
         return nome;
     }
+
+    @Override
+    public String toString() {
+        return nome;
+    }
 }
