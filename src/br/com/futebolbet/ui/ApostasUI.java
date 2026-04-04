@@ -1,130 +1,227 @@
 package br.com.futebolbet.ui;
 
+import br.com.futebolbet.enums.TipoResultado;
 import br.com.futebolbet.models.Aposta;
 import br.com.futebolbet.models.Grupo;
 import br.com.futebolbet.models.Partida;
 import br.com.futebolbet.models.Participante;
-import br.com.futebolbet.repository.ApostaRepository;
 import br.com.futebolbet.repository.PartidaRepository;
+import br.com.futebolbet.service.ApostaService;
+import br.com.futebolbet.service.GrupoService;
+import br.com.futebolbet.ui.theme.UiTheme;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.time.LocalDateTime;
 
-public class ApostasUI extends JFrame {
+public class ApostasUI extends JPanel implements AtualizavelInterface {
+
+    private JComboBox<Grupo> comboGrupo;
     private JComboBox<Partida> comboPartidas;
-    private JComboBox<Integer> comboResultado;
+    private JComboBox<TipoResultado> comboResultado;
     private JSpinner spinnerGolsCasa;
     private JSpinner spinnerGolsFora;
     private JButton botaoApostar;
     private JLabel labelStatus;
 
-    private Grupo grupo;
-    private Participante participanteAtual;
-    private PartidaRepository partidaRepository;
-    private ApostaRepository apostaRepository;
+    private final Participante participanteAtual;
+    private final PartidaRepository partidaRepository;
+    private final ApostaService apostaService;
+    private final GrupoService grupoService;
 
-    public ApostasUI(Grupo grupo, Participante participante) {
-        this.grupo = grupo;
+    public ApostasUI(Participante participante) {
         this.participanteAtual = participante;
         this.partidaRepository = PartidaRepository.getInstance();
-        this.apostaRepository = ApostaRepository.getInstance();
+        this.apostaService = new ApostaService();
+        this.grupoService = new GrupoService();
 
-        setTitle("Registrar Apostas - " + participante.getNome());
-        setSize(500, 400);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLocationRelativeTo(null);
+        UiTheme.applyPanel(this);
+        setLayout(new BorderLayout());
+        setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 
         JPanel principal = new JPanel();
+        UiTheme.applyPanel(principal);
         principal.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(10, 10, 10, 10);
 
-        // Partidas
         gbc.gridx = 0;
         gbc.gridy = 0;
-        principal.add(new JLabel("Partida:"), gbc);
+        JLabel lGrupo = new JLabel("Grupo:");
+        UiTheme.styleLabel(lGrupo, false);
+        principal.add(lGrupo, gbc);
 
         gbc.gridx = 1;
-        Partida[] partidas = partidaRepository.obterTodas().toArray(new Partida[0]);
-        comboPartidas = new JComboBox<>(partidas);
-        principal.add(comboPartidas, gbc);
+        comboGrupo = new JComboBox<>();
+        UiTheme.styleCombo(comboGrupo);
+        comboGrupo.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                    boolean isSelected, boolean cellHasFocus) {
+                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Grupo) {
+                    setText(((Grupo) value).getNome());
+                }
+                c.setForeground(UiTheme.FG_PRIMARY);
+                c.setBackground(isSelected ? UiTheme.ACCENT_BLUE : UiTheme.BG_CARD);
+                return c;
+            }
+        });
+        principal.add(comboGrupo, gbc);
 
-        // Resultado Esperado
         gbc.gridx = 0;
         gbc.gridy = 1;
-        principal.add(new JLabel("Resultado Esperado:"), gbc);
+        JLabel lPartida = new JLabel("Partida:");
+        UiTheme.styleLabel(lPartida, false);
+        principal.add(lPartida, gbc);
 
         gbc.gridx = 1;
-        comboResultado = new JComboBox<>(new String[]{"Casa", "Empate", "Fora"});
-        principal.add(comboResultado, gbc);
+        comboPartidas = new JComboBox<>();
+        UiTheme.styleCombo(comboPartidas);
+        principal.add(comboPartidas, gbc);
 
-        // Gols Casa
         gbc.gridx = 0;
         gbc.gridy = 2;
-        principal.add(new JLabel("Gols Casa:"), gbc);
+        JLabel lRes = new JLabel("Resultado esperado:");
+        UiTheme.styleLabel(lRes, false);
+        principal.add(lRes, gbc);
+
+        gbc.gridx = 1;
+        comboResultado = new JComboBox<>(TipoResultado.values());
+        UiTheme.styleCombo(comboResultado);
+        comboResultado.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                    boolean isSelected, boolean cellHasFocus) {
+                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof TipoResultado) {
+                    setText(((TipoResultado) value).getDescricao());
+                }
+                c.setForeground(UiTheme.FG_PRIMARY);
+                c.setBackground(isSelected ? UiTheme.ACCENT_BLUE : UiTheme.BG_CARD);
+                return c;
+            }
+        });
+        principal.add(comboResultado, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        JLabel lGc = new JLabel("Gols casa:");
+        UiTheme.styleLabel(lGc, false);
+        principal.add(lGc, gbc);
 
         gbc.gridx = 1;
         spinnerGolsCasa = new JSpinner(new SpinnerNumberModel(0, 0, 20, 1));
+        UiTheme.styleSpinner(spinnerGolsCasa);
         principal.add(spinnerGolsCasa, gbc);
 
-        // Gols Fora
         gbc.gridx = 0;
-        gbc.gridy = 3;
-        principal.add(new JLabel("Gols Fora:"), gbc);
+        gbc.gridy = 4;
+        JLabel lGf = new JLabel("Gols fora:");
+        UiTheme.styleLabel(lGf, false);
+        principal.add(lGf, gbc);
 
         gbc.gridx = 1;
         spinnerGolsFora = new JSpinner(new SpinnerNumberModel(0, 0, 20, 1));
+        UiTheme.styleSpinner(spinnerGolsFora);
         principal.add(spinnerGolsFora, gbc);
 
-        // Botão Apostar
         gbc.gridx = 0;
-        gbc.gridy = 4;
+        gbc.gridy = 5;
         gbc.gridwidth = 2;
-        botaoApostar = new JButton("Registrar Aposta");
+        botaoApostar = new JButton("Registrar aposta");
+        UiTheme.stylePrimaryButton(botaoApostar);
         botaoApostar.addActionListener(this::registrarAposta);
         principal.add(botaoApostar, gbc);
 
-        // Label Status
-        gbc.gridy = 5;
-        labelStatus = new JLabel("Pronto para apostar");
+        gbc.gridy = 6;
+        labelStatus = new JLabel(" ");
+        UiTheme.styleLabel(labelStatus, true);
         principal.add(labelStatus, gbc);
 
-        add(principal);
-        setVisible(true);
+        add(principal, BorderLayout.CENTER);
+
+        atualizarDados();
+    }
+
+    @Override
+    public void atualizarDados() {
+        recarregarGrupos();
+        recarregarPartidas();
+    }
+
+    public void recarregarGrupos() {
+        Grupo gSel = (Grupo) comboGrupo.getSelectedItem();
+        String nomeGrupo = gSel != null ? gSel.getNome() : null;
+        comboGrupo.removeAllItems();
+        for (Grupo g : grupoService.obterGruposDoParticipante(participanteAtual)) {
+            comboGrupo.addItem(g);
+        }
+        if (nomeGrupo != null) {
+            for (int i = 0; i < comboGrupo.getItemCount(); i++) {
+                Grupo g = comboGrupo.getItemAt(i);
+                if (g != null && nomeGrupo.equals(g.getNome())) {
+                    comboGrupo.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
+        if (comboGrupo.getItemCount() == 0) {
+            labelStatus.setText("Ingressa em um grupo na aba Grupos para apostar.");
+        } else {
+            labelStatus.setText("Pronto para apostar.");
+        }
+    }
+
+    private void recarregarPartidas() {
+        Partida pSel = (Partida) comboPartidas.getSelectedItem();
+        String ref = pSel != null ? pSel.toString() : null;
+        comboPartidas.removeAllItems();
+        for (Partida p : partidaRepository.obterTodas()) {
+            comboPartidas.addItem(p);
+        }
+        if (ref != null) {
+            for (int i = 0; i < comboPartidas.getItemCount(); i++) {
+                Partida p = comboPartidas.getItemAt(i);
+                if (p != null && ref.equals(p.toString())) {
+                    comboPartidas.setSelectedIndex(i);
+                    return;
+                }
+            }
+        }
     }
 
     private void registrarAposta(ActionEvent e) {
         try {
+            Grupo grupo = (Grupo) comboGrupo.getSelectedItem();
             Partida partida = (Partida) comboPartidas.getSelectedItem();
-            Integer resultado = comboResultado.getSelectedIndex();
+            TipoResultado resultado = (TipoResultado) comboResultado.getSelectedItem();
             Integer golsCasa = (Integer) spinnerGolsCasa.getValue();
             Integer golsFora = (Integer) spinnerGolsFora.getValue();
 
+            if (grupo == null) {
+                labelStatus.setText("Selecione um grupo ou ingresse em um grupo antes.");
+                return;
+            }
+
             if (partida == null) {
-                labelStatus.setText("Erro: Nenhuma partida selecionada!");
+                labelStatus.setText("Nenhuma partida disponível.");
                 return;
             }
 
-            // Validar se não é menos de 20 minutos antes da partida
-            LocalDateTime agora = LocalDateTime.now();
-            LocalDateTime limite = partida.getDataHora().minusMinutes(20);
+            Aposta aposta = new Aposta(participanteAtual, partida, resultado, golsCasa, golsFora);
 
-            if (agora.isAfter(limite)) {
-                labelStatus.setText("Erro: Apostas só até 20 minutos antes!");
-                return;
-            }
+            apostaService.registrarAposta(aposta);
 
-            Aposta aposta = new Aposta(participanteAtual, partida, resultado, golsCasa);
-            apostaRepository.adicionar(aposta);
             grupo.adicionarAposta(aposta);
 
-            labelStatus.setText("Aposta registrada com sucesso!");
-            JOptionPane.showMessageDialog(this, "Aposta registrada!");
+            labelStatus.setText("Aposta registrada com sucesso.");
+            JOptionPane.showMessageDialog(this, "Aposta registrada com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+
         } catch (Exception ex) {
             labelStatus.setText("Erro: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Atenção", JOptionPane.WARNING_MESSAGE);
         }
     }
 }

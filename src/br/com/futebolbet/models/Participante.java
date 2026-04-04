@@ -15,4 +15,8 @@ public class Participante extends Usuario{
     public void adicionarPontos(Integer pontos){
         this.pontos += pontos;
     }
+
+    public void definirPontos(int total) {
+        this.pontos = total;
+    }
 }
