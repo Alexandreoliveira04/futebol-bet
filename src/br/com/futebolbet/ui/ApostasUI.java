@@ -210,6 +210,11 @@ public class ApostasUI extends JPanel implements AtualizavelInterface {
                 return;
             }
 
+            if (resultado == null) {
+                labelStatus.setText("Selecione o resultado esperado.");
+                return;
+            }
+
             Aposta aposta = new Aposta(participanteAtual, partida, resultado, golsCasa, golsFora);
 
             apostaService.registrarAposta(aposta);
