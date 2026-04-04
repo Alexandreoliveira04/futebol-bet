@@ -164,5 +164,6 @@ public class MenuPrincipalUI extends JFrame {
         if (aba == DashboardAba.PAR_APOSTAS && apostasParticipante != null) {
             apostasParticipante.atualizarDados();
         }
+        atualizarAbaVisivel();
     }
 }
