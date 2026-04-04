@@ -11,7 +11,16 @@ public class Campeonato {
         this.clubes = clubes;
     }
 
+    public String getNome(){
+        return nome;
+    }
+
     public List<Clube> getClubes(){
         return clubes;
+    }
+
+    @Override
+    public String toString() {
+        return nome != null ? nome : "";
     }
 }
