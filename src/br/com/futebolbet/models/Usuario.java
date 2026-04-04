@@ -1,5 +1,7 @@
 package br.com.futebolbet.models;
 
+import java.util.Objects;
+
 public abstract class Usuario {
     private String nome;
     private String email;
@@ -27,5 +29,22 @@ public abstract class Usuario {
 
     public boolean autenticar(String senha) {
         return this.senha.equals(senha);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Usuario usuario = (Usuario) o;
+        return Objects.equals(email, usuario.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(email);
     }
 }
