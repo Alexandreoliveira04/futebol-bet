@@ -63,7 +63,7 @@ public class CadastroUsuarioUI extends JFrame {
         txtConfirmaSenha = new JPasswordField(15);
         principal.add(txtConfirmaSenha, gbc);
 
-        // Botões
+        // Botoes
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
         btnCancelar = new JButton("Cancelar");
@@ -114,3 +114,8 @@ public class CadastroUsuarioUI extends JFrame {
         dispose();
     }
 }
+
+
+
+
+

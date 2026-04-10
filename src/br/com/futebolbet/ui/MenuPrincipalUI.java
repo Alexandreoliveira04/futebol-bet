@@ -31,7 +31,7 @@ public class MenuPrincipalUI extends JFrame {
         UIManager.put("Panel.background", UiTheme.BG_PRIMARY);
         UIManager.put("Label.foreground", UiTheme.FG_PRIMARY);
 
-        setTitle("Futebol Bet — " + usuarioLogado.getNome());
+        setTitle("Futebol Bet - " + usuarioLogado.getNome());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(900, 600));
         setSize(1000, 680);
@@ -167,3 +167,8 @@ public class MenuPrincipalUI extends JFrame {
         atualizarAbaVisivel();
     }
 }
+
+
+
+
+

@@ -16,7 +16,7 @@ public class CampeonatoService {
 
     public void criarCampeonato(String nome, List<Clube> clubesParticipantes) throws Exception {
         if (nome == null || nome.trim().isEmpty()) {
-            throw new Exception("O nome do campeonato é obrigatório.");
+            throw new Exception("O nome do campeonato e obrigatorio.");
         }
 
         if (clubesParticipantes.size() > 8) {
@@ -28,7 +28,7 @@ public class CampeonatoService {
         }
 
         if (campeonatoRepository.obterPorNome(nome) != null) {
-            throw new Exception("Já existe um campeonato com este nome.");
+            throw new Exception("Ja existe um campeonato com este nome.");
         }
 
         Campeonato campeonato = new Campeonato(nome, clubesParticipantes);
@@ -36,3 +36,6 @@ public class CampeonatoService {
         campeonatoRepository.adicionar(campeonato);
     }
 }
+
+
+

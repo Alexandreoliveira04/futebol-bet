@@ -27,7 +27,7 @@ public class LoginUi extends JFrame {
         UIManager.put("Panel.background", UiTheme.BG_PRIMARY);
         UIManager.put("Label.foreground", UiTheme.FG_PRIMARY);
 
-        setTitle("Login — Futebol Bet");
+        setTitle("Login - Futebol Bet");
         setSize(520, 380);
         setMinimumSize(new Dimension(480, 340));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -117,3 +117,7 @@ public class LoginUi extends JFrame {
         new CadastroUsuarioUI();
     }
 }
+
+
+
+

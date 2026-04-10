@@ -188,3 +188,8 @@ public class AdminPartidasUI extends JPanel implements AtualizavelInterface {
         JOptionPane.showMessageDialog(this, "Partida agendada com sucesso para o campeonato: " + campeonato.getNome());
     }
 }
+
+
+
+
+

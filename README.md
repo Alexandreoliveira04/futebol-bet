@@ -1,138 +1,157 @@
 # Futebol Bet - Sistema de Gerenciamento de Apostas
 
-## 📋 Descrição
-Aplicação Java para gerenciar apostas de participantes em partidas de campeonatos de futebol. O sistema permite que usuários criem grupos, registrem apostas e recebam pontuação automática com base na precisão de suas previsões.
+## Atualizacoes Recentes (Abr/2026)
+
+- Participante agora pode criar grupos na propria aba `Grupos` (alem de ingressar em grupos existentes).
+- Ajustes de textos da UI para evitar caracteres corrompidos (acentuacao).
+- Padronizacao dos arquivos Java para UTF-8 sem BOM.
+
+### Regra de Negocio Atualizada
+
+- Criacao de grupos: permitida para **Administrador** e **Participante**.
+- Limite de grupos no sistema permanece em **5**.
+- Limite de participantes por grupo permanece em **5**.
+
+### Compilacao Recomendada (Windows/PowerShell)
+
+```powershell
+$files = Get-ChildItem -Recurse -Filter *.java .\src | ForEach-Object FullName
+javac -encoding UTF-8 -d .\bin $files
+java -cp .\bin br.com.futebolbet.Main
+```
+## ðŸ“‹ DescriÃ§Ã£o
+AplicaÃ§Ã£o Java para gerenciar apostas de participantes em partidas de campeonatos de futebol. O sistema permite que usuÃ¡rios criem grupos, registrem apostas e recebam pontuaÃ§Ã£o automÃ¡tica com base na precisÃ£o de suas previsÃµes.
 
 ---
 
-## ✅ Funcionalidades Implementadas (Etapa 1)
+## âœ… Funcionalidades Implementadas (Etapa 1)
 
 ### 1. **Modelos de Dados (Models)**
-- ✅ `Usuario` - Classe abstrata base para todos os usuários
-- ✅ `Administrador` - Herda de Usuario, gerencia o sistema
-- ✅ `Participante` - Herda de Usuario, registra apostas e acumula pontos
-- ✅ `Clube` - Representa um clube de futebol
-- ✅ `Campeonato` - Conjunto de clubes (máx. 8 clubes)
-- ✅ `Partida` - Representa uma partida entre dois clubes
-- ✅ `Resultado` - Armazena gols marcados por cada time
-- ✅ `Aposta` - Nova classe para registrar previsões dos participantes
-- ✅ `Grupo` - Nova classe para agrupar participantes (máx. 5 participantes)
+- âœ… `Usuario` - Classe abstrata base para todos os usuÃ¡rios
+- âœ… `Administrador` - Herda de Usuario, gerencia o sistema
+- âœ… `Participante` - Herda de Usuario, registra apostas e acumula pontos
+- âœ… `Clube` - Representa um clube de futebol
+- âœ… `Campeonato` - Conjunto de clubes (mÃ¡x. 8 clubes)
+- âœ… `Partida` - Representa uma partida entre dois clubes
+- âœ… `Resultado` - Armazena gols marcados por cada time
+- âœ… `Aposta` - Nova classe para registrar previsÃµes dos participantes
+- âœ… `Grupo` - Nova classe para agrupar participantes (mÃ¡x. 5 participantes)
 
-### 2. **Repositories em Memória**
-O padrão Repository foi implementado com Singleton para armazenar dados em memória:
+### 2. **Repositories em MemÃ³ria**
+O padrÃ£o Repository foi implementado com Singleton para armazenar dados em memÃ³ria:
 
-- ✅ `UsuarioRepository` - Gerencia usuários do sistema
-- ✅ `CampeonatoRepository` - Gerencia campeonatos (validando máx. 8 clubes)
-- ✅ `GrupoRepository` - Gerencia grupos de apostadores
-- ✅ `ApostaRepository` - Gerencia apostas registradas
-- ✅ `PartidaRepository` - Gerencia partidas do campeonato
+- âœ… `UsuarioRepository` - Gerencia usuÃ¡rios do sistema
+- âœ… `CampeonatoRepository` - Gerencia campeonatos (validando mÃ¡x. 8 clubes)
+- âœ… `GrupoRepository` - Gerencia grupos de apostadores
+- âœ… `ApostaRepository` - Gerencia apostas registradas
+- âœ… `PartidaRepository` - Gerencia partidas do campeonato
 
-Cada repositório oferece operações CRUD básicas: adicionar, obter, remover e limpar.
+Cada repositÃ³rio oferece operaÃ§Ãµes CRUD bÃ¡sicas: adicionar, obter, remover e limpar.
 
-### 3. **Interfaces Gráficas (UI) com Swing**
+### 3. **Interfaces GrÃ¡ficas (UI) com Swing**
 
 #### 3.1 LoginUI
-- ✅ Autenticação de usuários
+- âœ… AutenticaÃ§Ã£o de usuÃ¡rios
 - Interface simples com campos de email e senha
 
 #### 3.2 ApostasUI (Nova)
 - Permite que participantes registrem apostas em partidas
-- Campos obrigatórios:
-  - Seleção da partida
+- Campos obrigatÃ³rios:
+  - SeleÃ§Ã£o da partida
   - Resultado esperado (Casa, Empate, Fora)
   - Gols esperados para cada time
-- Validação: Apostas só podem ser feitas até 20 minutos antes da partida
-- Interface com GridBagLayout para melhor organização
+- ValidaÃ§Ã£o: Apostas sÃ³ podem ser feitas atÃ© 20 minutos antes da partida
+- Interface com GridBagLayout para melhor organizaÃ§Ã£o
 
 #### 3.3 ClassificacaoUI (Nova)
 - Exibe ranking dos participantes dentro do grupo
-- Mostra posição, nome e pontos acumulados
-- Fácil visualização em formato tabular
+- Mostra posiÃ§Ã£o, nome e pontos acumulados
+- FÃ¡cil visualizaÃ§Ã£o em formato tabular
 
 #### 3.4 AdminResultadosUI (Nova)
 - Exclusiva para administradores
 - Registra resultado real das partidas
 - Calcula automaticamente pontos de todas as apostas dessa partida
-- Critérios de pontuação:
+- CritÃ©rios de pontuaÃ§Ã£o:
   - 10 pontos: Placar exato
   - 5 pontos: Resultado correto (vencedor ou empate)
   - 0 pontos: Erro
 
 ---
 
-## 🎯 Regras de Negócio Implementadas
+## ðŸŽ¯ Regras de NegÃ³cio Implementadas
 
-✅   **Cadastro de Campeonato:** Máximo 8 clubes por campeonato
-✅ **Grupos de Apostadores:** Máximo 5 participantes por grupo
-✅ **Limite de Apostas:** Apostas permitidas até 20 minutos antes da partida
-✅ **Cálculo de Pontos:**
+âœ…   **Cadastro de Campeonato:** MÃ¡ximo 8 clubes por campeonato
+âœ… **Grupos de Apostadores:** MÃ¡ximo 5 participantes por grupo
+âœ… **Limite de Apostas:** Apostas permitidas atÃ© 20 minutos antes da partida
+âœ… **CÃ¡lculo de Pontos:**
    - Acertar apenas o resultado: 5 pontos
    - Acertar resultado e placar exato: 10 pontos
    - Erro: 0 pontos
 
 ---
 
-## 📂 Estrutura do Projeto
+## ðŸ“‚ Estrutura do Projeto
 
 ```
 src/br/com/futebolbet/
-├── models/
-│   ├── Usuario.java
-│   ├── Administrador.java
-│   ├── Participante.java
-│   ├── Clube.java
-│   ├── Campeonato.java
-│   ├── Partida.java
-│   ├── Resultado.java
-│   ├── Aposta.java (NOVO)
-│   └── Grupo.java (NOVO)
-├── repository/
-│   ├── UsuarioRepository.java (NOVO)
-│   ├── CampeonatoRepository.java (NOVO)
-│   ├── GrupoRepository.java (NOVO)
-│   ├── ApostaRepository.java (NOVO)
-│   └── PartidaRepository.java (NOVO)
-├── service/
-│   └── AuthService.java
-├── ui/
-│   ├── LoginUI.java
-│   ├── ApostasUI.java (NOVO)
-│   ├── ClassificacaoUI.java (NOVO)
-│   └── AdminResultadosUI.java (NOVO)
-└── Main.java
+â”œâ”€â”€ models/
+â”‚   â”œâ”€â”€ Usuario.java
+â”‚   â”œâ”€â”€ Administrador.java
+â”‚   â”œâ”€â”€ Participante.java
+â”‚   â”œâ”€â”€ Clube.java
+â”‚   â”œâ”€â”€ Campeonato.java
+â”‚   â”œâ”€â”€ Partida.java
+â”‚   â”œâ”€â”€ Resultado.java
+â”‚   â”œâ”€â”€ Aposta.java (NOVO)
+â”‚   â””â”€â”€ Grupo.java (NOVO)
+â”œâ”€â”€ repository/
+â”‚   â”œâ”€â”€ UsuarioRepository.java (NOVO)
+â”‚   â”œâ”€â”€ CampeonatoRepository.java (NOVO)
+â”‚   â”œâ”€â”€ GrupoRepository.java (NOVO)
+â”‚   â”œâ”€â”€ ApostaRepository.java (NOVO)
+â”‚   â””â”€â”€ PartidaRepository.java (NOVO)
+â”œâ”€â”€ service/
+â”‚   â””â”€â”€ AuthService.java
+â”œâ”€â”€ ui/
+â”‚   â”œâ”€â”€ LoginUI.java
+â”‚   â”œâ”€â”€ ApostasUI.java (NOVO)
+â”‚   â”œâ”€â”€ ClassificacaoUI.java (NOVO)
+â”‚   â””â”€â”€ AdminResultadosUI.java (NOVO)
+â””â”€â”€ Main.java
 ```
 
 ---
 
-## 🔄 Próximas Etapas (Services)
+## ðŸ”„ PrÃ³ximas Etapas (Services)
 
-As seguintes funcionalidades serão implementadas na próxima etapa:
+As seguintes funcionalidades serÃ£o implementadas na prÃ³xima etapa:
 
 - [ ] `CampeonatoService` - Gerenciar campeonatos e clubes
 - [ ] `GrupoService` - Criar e gerenciar grupos de apostadores
 - [ ] `ApostaService` - Validar e registrar apostas
 - [ ] `PartidaService` - Gerenciar partidas e cronograma
 - [ ] `PontuacaoService` - Calcular e atualizar pontos
-- [ ] Integração das UIs com os Services
-- [ ] Menu principal para navegação
+- [ ] IntegraÃ§Ã£o das UIs com os Services
+- [ ] Menu principal para navegaÃ§Ã£o
 
 ---
 
-## 📝 Notas de Desenvolvimento
+## ðŸ“ Notas de Desenvolvimento
 
-### Padrões Utilizados
-- **Singleton:** Repositórios garantem única instância em memória
-- **Herança:** Usuario é superclasse para Administrador e Participante
-- **MVC Parcial:** Separação entre Models, Views (UI) e Data Access (Repository)
+### PadrÃµes Utilizados
+- **Singleton:** RepositÃ³rios garantem Ãºnica instÃ¢ncia em memÃ³ria
+- **HeranÃ§a:** Usuario Ã© superclasse para Administrador e Participante
+- **MVC Parcial:** SeparaÃ§Ã£o entre Models, Views (UI) e Data Access (Repository)
 
-### Limitações Atuais
-⚠️ Dados armazenados apenas em memória (perdidos ao encerrar a aplicação)
-⚠️ Sem persistência em banco de dados (próxima fase)
-⚠️ UI ainda não integrada com Services
+### LimitaÃ§Ãµes Atuais
+âš ï¸ Dados armazenados apenas em memÃ³ria (perdidos ao encerrar a aplicaÃ§Ã£o)
+âš ï¸ Sem persistÃªncia em banco de dados (prÃ³xima fase)
+âš ï¸ UI ainda nÃ£o integrada com Services
 
 ---
 
-## 🚀 Como Compilar e Executar
+## ðŸš€ Como Compilar e Executar
 
 ```bash
 # Compilar
@@ -144,8 +163,8 @@ java -cp bin/ br.com.futebolbet.Main
 
 ---
 
-## 👥 Equipe de Desenvolvimento
+## ðŸ‘¥ Equipe de Desenvolvimento
 
 **Etapa 1 (Repositories e UI):** Implementada
 **Etapa 2 (Services):** A fazer
-**Etapa 3 (Finalização):** A fazer
+**Etapa 3 (FinalizaÃ§Ã£o):** A fazer
