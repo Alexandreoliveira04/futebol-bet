@@ -2,6 +2,7 @@ package br.com.futebolbet.enums;
 
 
 public enum DashboardAba {
+    ADM_CLUBES("adm_clubes"),
     ADM_CAMPEONATOS("adm_campeonatos"),
     ADM_PARTIDAS("adm_partidas"),
     ADM_RESULTADOS("adm_resultados"),

@@ -108,12 +108,13 @@ public class MenuPrincipalUI extends JFrame {
     }
 
     private void montarAbasAdmin(JPanel barraAbas) {
-        registrarCartao(DashboardAba.ADM_CAMPEONATOS, "Campeonatos e clubes", new AdminCampeonatoUI(), barraAbas);
+        registrarCartao(DashboardAba.ADM_CLUBES, "Clubes", new AdminClubeUI(), barraAbas);
+        registrarCartao(DashboardAba.ADM_CAMPEONATOS, "Campeonatos", new AdminCampeonatoUI(), barraAbas);
         registrarCartao(DashboardAba.ADM_PARTIDAS, "Agendar partidas", new AdminPartidasUI(), barraAbas);
         registrarCartao(DashboardAba.ADM_RESULTADOS, "Registrar resultados", new AdminResultadosUI(), barraAbas);
         registrarCartao(DashboardAba.ADM_GRUPOS, "Gerenciar grupos", new AdminGruposUI(), barraAbas);
         registrarCartao(DashboardAba.ADM_CLASSIFICACAO, "Classificação", new ClassificacaoUI(), barraAbas);
-        selecionarAba(DashboardAba.ADM_CAMPEONATOS);
+        selecionarAba(DashboardAba.ADM_CLUBES);
     }
 
     private void montarAbasParticipante(JPanel barraAbas, Participante participante) {
