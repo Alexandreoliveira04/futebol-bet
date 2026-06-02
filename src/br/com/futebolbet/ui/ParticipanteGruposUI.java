@@ -1,22 +1,21 @@
 package br.com.futebolbet.ui;
 
+import br.com.futebolbet.controller.GrupoController;
 import br.com.futebolbet.models.Grupo;
 import br.com.futebolbet.models.Participante;
-import br.com.futebolbet.service.GrupoService;
 import br.com.futebolbet.ui.theme.UiTheme;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 
 public class ParticipanteGruposUI extends JPanel implements AtualizavelInterface {
 
     private JTextField txtNomeGrupo;
-    private JButton btnCriarGrupo;
     private JComboBox<String> comboGrupos;
-    private JButton btnIngressar;
+    private JLabel labelStatus;
 
-    private final GrupoService grupoService;
+    private final GrupoController grupoController;
     private final Participante participanteLogado;
     private final Runnable aposIngressar;
 
@@ -26,66 +25,87 @@ public class ParticipanteGruposUI extends JPanel implements AtualizavelInterface
 
     public ParticipanteGruposUI(Participante participante, Runnable aposIngressar) {
         this.participanteLogado = participante;
-        this.grupoService = new GrupoService();
+        this.grupoController = new GrupoController();
         this.aposIngressar = aposIngressar;
 
         UiTheme.applyPanel(this);
-        setLayout(new GridBagLayout());
-        setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
+        setLayout(new BorderLayout(0, 12));
+        setBorder(new EmptyBorder(8, 8, 8, 8));
 
+        add(UiTheme.createSectionHeader("Grupos"), BorderLayout.NORTH);
+        add(criarPainelCriar(), BorderLayout.CENTER);
+        add(criarPainelIngressar(), BorderLayout.SOUTH);
+    }
+
+    private JPanel criarPainelCriar() {
+        JPanel card = new JPanel(new GridBagLayout());
+        UiTheme.applyPanelCard(card);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.weightx = 1.0;
 
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        JLabel titulo = new JLabel("Criar ou ingressar em grupos:");
-        UiTheme.styleLabel(titulo, false);
-        add(titulo, gbc);
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        gbc.insets = new Insets(0, 0, 4, 0);
+        JLabel lblSub = new JLabel("Criar novo grupo");
+        lblSub.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
+        lblSub.setForeground(UiTheme.FG_PRIMARY);
+        card.add(lblSub, gbc);
 
-        gbc.gridy = 1;
-        gbc.gridwidth = 1;
-        JLabel lblNomeGrupo = new JLabel("Nome do grupo:");
-        UiTheme.styleLabel(lblNomeGrupo, false);
-        add(lblNomeGrupo, gbc);
+        gbc.gridy = 1; gbc.insets = new Insets(0, 0, 6, 0);
+        JLabel lbl = new JLabel("Nome do grupo");
+        UiTheme.styleLabel(lbl, false);
+        card.add(lbl, gbc);
 
-        gbc.gridx = 1;
-        txtNomeGrupo = new JTextField(15);
+        gbc.gridy = 2; gbc.insets = new Insets(0, 0, 12, 0);
+        txtNomeGrupo = new JTextField();
         UiTheme.styleTextField(txtNomeGrupo);
-        add(txtNomeGrupo, gbc);
+        txtNomeGrupo.addActionListener(e -> criarGrupo());
+        card.add(txtNomeGrupo, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2;
-        btnCriarGrupo = new JButton("Criar grupo");
-        UiTheme.stylePrimaryButton(btnCriarGrupo);
-        btnCriarGrupo.addActionListener(this::criarGrupo);
-        add(btnCriarGrupo, gbc);
+        gbc.gridy = 3; gbc.insets = new Insets(0, 0, 8, 0);
+        JButton btnCriar = new JButton("Criar grupo");
+        UiTheme.stylePrimaryButton(btnCriar);
+        btnCriar.addActionListener(e -> criarGrupo());
+        card.add(btnCriar, gbc);
 
-        gbc.gridy = 3;
-        JSeparator sep = new JSeparator();
-        sep.setForeground(new Color(0x00, 0x33, 0x55));
-        add(sep, gbc);
+        gbc.gridy = 4; gbc.insets = new Insets(0, 0, 0, 0);
+        labelStatus = new JLabel(" ");
+        labelStatus.setHorizontalAlignment(SwingConstants.CENTER);
+        UiTheme.styleStatusLabel(labelStatus);
+        card.add(labelStatus, gbc);
 
-        gbc.gridy = 4;
-        JLabel subtitulo = new JLabel("Selecione um grupo para ingressar:");
-        UiTheme.styleLabel(subtitulo, false);
-        add(subtitulo, gbc);
+        return card;
+    }
 
-        gbc.gridy = 5;
-        gbc.gridwidth = 1;
-        gbc.gridx = 0;
+    private JPanel criarPainelIngressar() {
+        JPanel card = new JPanel(new GridBagLayout());
+        UiTheme.applyPanelCard(card);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        gbc.insets = new Insets(0, 0, 10, 0);
+        JLabel lblSub = new JLabel("Ingressar em grupo existente");
+        lblSub.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
+        lblSub.setForeground(UiTheme.FG_PRIMARY);
+        card.add(lblSub, gbc);
+
+        gbc.gridy = 1; gbc.gridwidth = 1; gbc.weightx = 1.0;
+        gbc.insets = new Insets(0, 0, 0, 8);
         comboGrupos = new JComboBox<>();
         UiTheme.styleCombo(comboGrupos);
         atualizarComboGrupos();
-        add(comboGrupos, gbc);
+        card.add(comboGrupos, gbc);
 
-        gbc.gridx = 1;
-        btnIngressar = new JButton("Ingressar");
+        gbc.gridx = 1; gbc.weightx = 0;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        JButton btnIngressar = new JButton("Ingressar");
         UiTheme.stylePrimaryButton(btnIngressar);
-        btnIngressar.addActionListener(this::ingressarGrupo);
-        add(btnIngressar, gbc);
+        btnIngressar.addActionListener(e -> ingressarGrupo());
+        card.add(btnIngressar, gbc);
+
+        return card;
     }
 
     @Override
@@ -93,58 +113,40 @@ public class ParticipanteGruposUI extends JPanel implements AtualizavelInterface
         atualizarComboGrupos();
     }
 
-    private void ingressarGrupo(ActionEvent e) {
+    private void criarGrupo() {
         try {
-            String nomeSelecionado = (String) comboGrupos.getSelectedItem();
-            if (nomeSelecionado == null) {
-                JOptionPane.showMessageDialog(this, "Nenhum grupo selecionado!", "Aviso", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
-            Grupo grupo = grupoService.obterTodosGrupos().stream()
-                    .filter(g -> g.getNome().equals(nomeSelecionado))
-                    .findFirst()
-                    .orElse(null);
-
-            if (grupo != null) {
-                grupoService.ingressarNoGrupo(grupo, participanteLogado);
-                JOptionPane.showMessageDialog(this, "Você ingressou no grupo '" + grupo.getNome() + "' com sucesso!");
-                if (aposIngressar != null) {
-                    aposIngressar.run();
-                }
+            grupoController.criarGrupo(txtNomeGrupo.getText());
+            UiTheme.setLabelSuccess(labelStatus, "Grupo criado!");
+            String nome = txtNomeGrupo.getText().trim();
+            txtNomeGrupo.setText("");
+            atualizarComboGrupos();
+            for (int i = 0; i < comboGrupos.getItemCount(); i++) {
+                if (nome.equals(comboGrupos.getItemAt(i))) { comboGrupos.setSelectedIndex(i); break; }
             }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro ao ingressar", JOptionPane.ERROR_MESSAGE);
+            UiTheme.setLabelError(labelStatus, ex.getMessage());
         }
     }
 
-    private void criarGrupo(ActionEvent e) {
+    private void ingressarGrupo() {
         try {
-            String nomeGrupo = txtNomeGrupo.getText().trim();
-            if (nomeGrupo.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Digite um nome para o grupo!", "Aviso", JOptionPane.WARNING_MESSAGE);
+            String nomeSelecionado = (String) comboGrupos.getSelectedItem();
+            if (nomeSelecionado == null || nomeSelecionado.isEmpty()) {
+                UiTheme.setLabelError(labelStatus, "Nenhum grupo selecionado.");
                 return;
             }
-
-            grupoService.criarGrupo(nomeGrupo);
-            atualizarComboGrupos();
-            comboGrupos.setSelectedItem(nomeGrupo);
-            txtNomeGrupo.setText("");
-
-            JOptionPane.showMessageDialog(this, "Grupo '" + nomeGrupo + "' criado com sucesso!");
+            grupoController.ingressarNoGrupo(nomeSelecionado, participanteLogado);
+            UiTheme.setLabelSuccess(labelStatus, "Ingressou no grupo '" + nomeSelecionado + "'!");
+            if (aposIngressar != null) aposIngressar.run();
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro de validação", JOptionPane.ERROR_MESSAGE);
+            UiTheme.setLabelError(labelStatus, ex.getMessage());
         }
     }
 
     private void atualizarComboGrupos() {
         comboGrupos.removeAllItems();
-        for (Grupo g : grupoService.obterTodosGrupos()) {
+        for (Grupo g : grupoController.listarGrupos()) {
             comboGrupos.addItem(g.getNome());
         }
     }
 }
-
-
-
-

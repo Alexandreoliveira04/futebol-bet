@@ -7,6 +7,7 @@ import br.com.futebolbet.models.Usuario;
 import br.com.futebolbet.ui.theme.UiTheme;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -28,35 +29,22 @@ public class MenuPrincipalUI extends JFrame {
         this.usuarioLogado = usuarioLogado;
 
         UiTheme.applyDarkOptionPaneDefaults();
-        UIManager.put("Panel.background", UiTheme.BG_PRIMARY);
-        UIManager.put("Label.foreground", UiTheme.FG_PRIMARY);
 
-        setTitle("Futebol Bet - " + usuarioLogado.getNome());
+        setTitle("Futebol Bet — " + usuarioLogado.getNome());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(900, 600));
-        setSize(1000, 680);
+        setMinimumSize(new Dimension(950, 620));
+        setSize(1050, 700);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
         UiTheme.applyRoot(this);
 
-        JPanel cabecalho = new JPanel(new BorderLayout());
-        UiTheme.applyPanel(cabecalho);
-        cabecalho.setBorder(BorderFactory.createEmptyBorder(12, 16, 8, 16));
-        JLabel titulo = new JLabel("Futebol Bet  |  " + tipoUsuarioLabel());
-        titulo.setFont(titulo.getFont().deriveFont(Font.BOLD, 15f));
-        UiTheme.styleLabel(titulo, false);
-        cabecalho.add(titulo, BorderLayout.WEST);
+        add(criarCabecalho(), BorderLayout.NORTH);
 
-        JButton btnAtualizar = new JButton("Atualizar dados");
-        UiTheme.styleSecondaryButton(btnAtualizar);
-        btnAtualizar.setToolTipText("Recarrega listas e combos da aba atual (campeonatos, partidas, etc.)");
-        btnAtualizar.addActionListener(e -> atualizarAbaVisivel());
-        cabecalho.add(btnAtualizar, BorderLayout.EAST);
+        JPanel centroComAbas = new JPanel(new BorderLayout());
+        UiTheme.applyPanel(centroComAbas);
 
-        add(cabecalho, BorderLayout.NORTH);
-
-        JPanel barraAbas = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 8));
+        JPanel barraAbas = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 8));
         UiTheme.applyPanel(barraAbas);
         barraAbas.setBorder(UiTheme.tabBarBorder());
 
@@ -66,15 +54,46 @@ public class MenuPrincipalUI extends JFrame {
             montarAbasParticipante(barraAbas, (Participante) usuarioLogado);
         }
 
-        JPanel centroComAbas = new JPanel(new BorderLayout());
-        UiTheme.applyPanel(centroComAbas);
         centroComAbas.add(barraAbas, BorderLayout.NORTH);
         centroComAbas.add(painelCartoes, BorderLayout.CENTER);
         add(centroComAbas, BorderLayout.CENTER);
+        add(criarRodape(), BorderLayout.SOUTH);
 
-        JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 12));
-        UiTheme.applyPanel(rodape);
-        rodape.setBorder(BorderFactory.createEmptyBorder(4, 16, 12, 16));
+        setVisible(true);
+    }
+
+    private JPanel criarCabecalho() {
+        JPanel cab = new JPanel(new BorderLayout());
+        cab.setBackground(UiTheme.BG_CARD);
+        cab.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, UiTheme.ACCENT_BORDER),
+                new EmptyBorder(12, 20, 12, 20)));
+
+        JPanel esquerda = new JPanel(new GridLayout(2, 1, 0, 2));
+        esquerda.setBackground(UiTheme.BG_CARD);
+        JLabel lblApp = new JLabel("FUTEBOL BET");
+        lblApp.setFont(new Font(Font.DIALOG, Font.BOLD, 15));
+        lblApp.setForeground(UiTheme.ACCENT_GREEN);
+        JLabel lblUser = new JLabel(tipoUsuarioLabel() + "  —  " + usuarioLogado.getNome());
+        lblUser.setFont(new Font(Font.DIALOG, Font.PLAIN, 12));
+        lblUser.setForeground(UiTheme.FG_MUTED);
+        esquerda.add(lblApp);
+        esquerda.add(lblUser);
+        cab.add(esquerda, BorderLayout.WEST);
+
+        JButton btnAtualizar = new JButton("Atualizar dados");
+        UiTheme.styleSecondaryButton(btnAtualizar);
+        btnAtualizar.setToolTipText("Recarrega os dados da aba atual");
+        btnAtualizar.addActionListener(e -> atualizarAbaVisivel());
+        cab.add(btnAtualizar, BorderLayout.EAST);
+
+        return cab;
+    }
+
+    private JPanel criarRodape() {
+        JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 10));
+        rodape.setBackground(UiTheme.BG_CARD);
+        rodape.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UiTheme.ACCENT_BORDER));
         JButton btnSair = new JButton("Sair");
         UiTheme.styleSecondaryButton(btnSair);
         btnSair.addActionListener(e -> {
@@ -82,15 +101,11 @@ public class MenuPrincipalUI extends JFrame {
             dispose();
         });
         rodape.add(btnSair);
-        add(rodape, BorderLayout.SOUTH);
-
-        setVisible(true);
+        return rodape;
     }
 
     private void atualizarAbaVisivel() {
-        if (abaAtual == null) {
-            return;
-        }
+        if (abaAtual == null) return;
         JComponent c = conteudoPorAba.get(abaAtual);
         if (c instanceof AtualizavelInterface) {
             ((AtualizavelInterface) c).atualizarDados();
@@ -98,13 +113,9 @@ public class MenuPrincipalUI extends JFrame {
     }
 
     private String tipoUsuarioLabel() {
-        if (usuarioLogado instanceof Administrador) {
-            return "Administrador";
-        }
-        if (usuarioLogado instanceof Participante) {
-            return "Participante";
-        }
-        return "Usuário";
+        if (usuarioLogado instanceof Administrador) return "Administrador";
+        if (usuarioLogado instanceof Participante) return "Participante";
+        return "Usuario";
     }
 
     private void montarAbasAdmin(JPanel barraAbas) {
@@ -113,13 +124,13 @@ public class MenuPrincipalUI extends JFrame {
         registrarCartao(DashboardAba.ADM_PARTIDAS, "Agendar partidas", new AdminPartidasUI(), barraAbas);
         registrarCartao(DashboardAba.ADM_RESULTADOS, "Registrar resultados", new AdminResultadosUI(), barraAbas);
         registrarCartao(DashboardAba.ADM_GRUPOS, "Gerenciar grupos", new AdminGruposUI(), barraAbas);
-        registrarCartao(DashboardAba.ADM_CLASSIFICACAO, "Classificação", new ClassificacaoUI(), barraAbas);
+        registrarCartao(DashboardAba.ADM_CLASSIFICACAO, "Classificacao", new ClassificacaoUI(), barraAbas);
         selecionarAba(DashboardAba.ADM_CLUBES);
     }
 
     private void montarAbasParticipante(JPanel barraAbas, Participante participante) {
         registrarCartao(DashboardAba.PAR_PARTIDAS, "Partidas", new ParticipantePartidasUI(), barraAbas);
-        registrarCartao(DashboardAba.PAR_CLASSIFICACAO, "Classificação", new ClassificacaoUI(participante), barraAbas);
+        registrarCartao(DashboardAba.PAR_CLASSIFICACAO, "Classificacao", new ClassificacaoUI(participante), barraAbas);
 
         apostasParticipante = new ApostasUI(participante);
         ParticipanteGruposUI grupos = new ParticipanteGruposUI(participante, () -> {
@@ -137,7 +148,7 @@ public class MenuPrincipalUI extends JFrame {
 
         JPanel envelope = new JPanel(new BorderLayout());
         UiTheme.applyPanel(envelope);
-        envelope.setBorder(BorderFactory.createEmptyBorder(8, 12, 12, 12));
+        envelope.setBorder(new EmptyBorder(12, 16, 16, 16));
         envelope.add(conteudo, BorderLayout.CENTER);
         painelCartoes.add(envelope, aba.getCardId());
 
@@ -168,8 +179,3 @@ public class MenuPrincipalUI extends JFrame {
         atualizarAbaVisivel();
     }
 }
-
-
-
-
-

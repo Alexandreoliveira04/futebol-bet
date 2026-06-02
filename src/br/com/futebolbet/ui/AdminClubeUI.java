@@ -1,90 +1,89 @@
 package br.com.futebolbet.ui;
 
+import br.com.futebolbet.controller.ClubeController;
 import br.com.futebolbet.models.Clube;
-import br.com.futebolbet.repository.ClubeRepository;
 import br.com.futebolbet.ui.theme.UiTheme;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 
 public class AdminClubeUI extends JPanel implements AtualizavelInterface {
 
     private JTextField txtNomeClube;
-    private JButton btnCadastrarClube;
-    private DefaultListModel<Clube> listModel;
-    private JList<Clube> listaClubes;
+    private DefaultListModel<String> listModel;
+    private JLabel labelStatus;
 
-    private final ClubeRepository clubeRepository;
+    private final ClubeController clubeController;
 
     public AdminClubeUI() {
-        this.clubeRepository = ClubeRepository.getInstance();
+        this.clubeController = new ClubeController();
 
         UiTheme.applyPanel(this);
-        setLayout(new BorderLayout());
-        setBorder(BorderFactory.createEmptyBorder(16, 20, 16, 20));
+        setLayout(new BorderLayout(0, 16));
+        setBorder(new EmptyBorder(8, 8, 8, 8));
 
-        JPanel principal = new JPanel(new GridBagLayout());
-        UiTheme.applyPanel(principal);
+        add(UiTheme.createSectionHeader("Cadastrar Clube"), BorderLayout.NORTH);
+        add(criarFormulario(), BorderLayout.CENTER);
+        add(criarPainelLista(), BorderLayout.SOUTH);
+
+        atualizarLista();
+    }
+
+    private JPanel criarFormulario() {
+        JPanel card = new JPanel(new GridBagLayout());
+        UiTheme.applyPanelCard(card);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(10, 10, 10, 10);
-
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        JLabel lblTitulo = new JLabel("Cadastrar novo clube");
-        lblTitulo.setFont(lblTitulo.getFont().deriveFont(Font.BOLD, 14f));
-        UiTheme.styleLabel(lblTitulo, false);
-        principal.add(lblTitulo, gbc);
-
-        gbc.gridy = 1;
-        gbc.gridwidth = 1;
-        JLabel n1 = new JLabel("Nome do clube:");
-        UiTheme.styleLabel(n1, false);
-        principal.add(n1, gbc);
-
-        gbc.gridx = 1;
-        txtNomeClube = new JTextField(18);
-        UiTheme.styleTextField(txtNomeClube);
-        principal.add(txtNomeClube, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2;
-        btnCadastrarClube = new JButton("Salvar clube");
-        UiTheme.stylePrimaryButton(btnCadastrarClube);
-        btnCadastrarClube.addActionListener(this::cadastrarClube);
-        principal.add(btnCadastrarClube, gbc);
-
-        gbc.gridy = 3;
-        JSeparator sep = new JSeparator();
-        sep.setForeground(new Color(0x00, 0x33, 0x55));
-        principal.add(sep, gbc);
-
-        gbc.gridy = 4;
-        JLabel lblListaTitulo = new JLabel("Clubes cadastrados:");
-        lblListaTitulo.setFont(lblListaTitulo.getFont().deriveFont(Font.BOLD, 13f));
-        UiTheme.styleLabel(lblListaTitulo, false);
-        principal.add(lblListaTitulo, gbc);
-
-        gbc.gridy = 5;
-        gbc.fill = GridBagConstraints.BOTH;
         gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
+
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        gbc.insets = new Insets(0, 0, 6, 0);
+        JLabel lbl = new JLabel("Nome do clube");
+        UiTheme.styleLabel(lbl, false);
+        card.add(lbl, gbc);
+
+        gbc.gridy = 1; gbc.insets = new Insets(0, 0, 14, 0);
+        txtNomeClube = new JTextField();
+        UiTheme.styleTextField(txtNomeClube);
+        txtNomeClube.addActionListener(e -> cadastrarClube());
+        card.add(txtNomeClube, gbc);
+
+        gbc.gridy = 2; gbc.insets = new Insets(0, 0, 10, 0);
+        JButton btnSalvar = new JButton("Salvar clube");
+        UiTheme.stylePrimaryButton(btnSalvar);
+        btnSalvar.addActionListener(e -> cadastrarClube());
+        card.add(btnSalvar, gbc);
+
+        gbc.gridy = 3; gbc.insets = new Insets(0, 0, 0, 0);
+        labelStatus = new JLabel(" ");
+        labelStatus.setHorizontalAlignment(SwingConstants.CENTER);
+        UiTheme.styleStatusLabel(labelStatus);
+        card.add(labelStatus, gbc);
+
+        return card;
+    }
+
+    private JPanel criarPainelLista() {
+        JPanel painel = new JPanel(new BorderLayout(0, 8));
+        UiTheme.applyPanel(painel);
+
+        painel.add(UiTheme.createSectionHeader("Clubes Cadastrados"), BorderLayout.NORTH);
+
         listModel = new DefaultListModel<>();
-        listaClubes = new JList<>(listModel);
+        JList<String> listaClubes = new JList<>(listModel);
         listaClubes.setBackground(UiTheme.BG_CARD);
         listaClubes.setForeground(UiTheme.FG_PRIMARY);
-        listaClubes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        listaClubes.setVisibleRowCount(-1);
+        listaClubes.setFont(new Font(Font.DIALOG, Font.PLAIN, 13));
+        listaClubes.setFixedCellHeight(32);
         listaClubes.setEnabled(false);
+
         JScrollPane scroll = new JScrollPane(listaClubes);
         UiTheme.styleScrollPane(scroll);
-        principal.add(scroll, gbc);
+        scroll.setPreferredSize(new Dimension(0, 180));
+        painel.add(scroll, BorderLayout.CENTER);
 
-        add(principal, BorderLayout.CENTER);
-        atualizarLista();
+        return painel;
     }
 
     @Override
@@ -92,22 +91,21 @@ public class AdminClubeUI extends JPanel implements AtualizavelInterface {
         atualizarLista();
     }
 
-    private void cadastrarClube(ActionEvent e) {
-        String nome = txtNomeClube.getText().trim();
-        if (nome.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Digite o nome do clube!", "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
+    private void cadastrarClube() {
+        try {
+            clubeController.cadastrarClube(txtNomeClube.getText());
+            UiTheme.setLabelSuccess(labelStatus, "Clube cadastrado com sucesso.");
+            txtNomeClube.setText("");
+            atualizarLista();
+        } catch (Exception ex) {
+            UiTheme.setLabelError(labelStatus, ex.getMessage());
         }
-        clubeRepository.adicionar(new Clube(nome));
-        JOptionPane.showMessageDialog(this, "Clube cadastrado com sucesso!");
-        txtNomeClube.setText("");
-        atualizarLista();
     }
 
     private void atualizarLista() {
         listModel.clear();
-        for (Clube clube : clubeRepository.obterTodos()) {
-            listModel.addElement(clube);
+        for (Clube c : clubeController.listarClubes()) {
+            listModel.addElement(c.getNome());
         }
     }
 }

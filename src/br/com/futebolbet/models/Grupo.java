@@ -4,15 +4,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Grupo {
+
+    private static final int MAX_PARTICIPANTES = 5;
+
+    private int id;
     private String nome;
     private List<Participante> participantes;
     private List<Aposta> apostas;
-    private static final Integer MAX_PARTICIPANTES = 5;
 
     public Grupo(String nome) {
         this.nome = nome;
         this.participantes = new ArrayList<>();
         this.apostas = new ArrayList<>();
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getNome() {

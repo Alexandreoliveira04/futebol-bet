@@ -1,18 +1,15 @@
 package br.com.futebolbet.ui;
 
+import br.com.futebolbet.controller.ApostaController;
 import br.com.futebolbet.enums.TipoResultado;
-import br.com.futebolbet.models.Aposta;
 import br.com.futebolbet.models.Grupo;
 import br.com.futebolbet.models.Partida;
 import br.com.futebolbet.models.Participante;
-import br.com.futebolbet.repository.PartidaRepository;
-import br.com.futebolbet.service.ApostaService;
-import br.com.futebolbet.service.GrupoService;
 import br.com.futebolbet.ui.theme.UiTheme;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 
 public class ApostasUI extends JPanel implements AtualizavelInterface {
 
@@ -21,128 +18,130 @@ public class ApostasUI extends JPanel implements AtualizavelInterface {
     private JComboBox<TipoResultado> comboResultado;
     private JSpinner spinnerGolsCasa;
     private JSpinner spinnerGolsFora;
-    private JButton botaoApostar;
     private JLabel labelStatus;
 
     private final Participante participanteAtual;
-    private final PartidaRepository partidaRepository;
-    private final ApostaService apostaService;
-    private final GrupoService grupoService;
+    private final ApostaController apostaController;
 
     public ApostasUI(Participante participante) {
         this.participanteAtual = participante;
-        this.partidaRepository = PartidaRepository.getInstance();
-        this.apostaService = new ApostaService();
-        this.grupoService = new GrupoService();
+        this.apostaController = new ApostaController();
 
         UiTheme.applyPanel(this);
-        setLayout(new BorderLayout());
-        setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
+        setLayout(new BorderLayout(0, 12));
+        setBorder(new EmptyBorder(8, 8, 8, 8));
 
-        JPanel principal = new JPanel();
-        UiTheme.applyPanel(principal);
-        principal.setLayout(new GridBagLayout());
+        add(UiTheme.createSectionHeader("Registrar Aposta"), BorderLayout.NORTH);
+        add(criarFormulario(), BorderLayout.CENTER);
+
+        atualizarDados();
+    }
+
+    private JPanel criarFormulario() {
+        JPanel card = new JPanel(new GridBagLayout());
+        UiTheme.applyPanelCard(card);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.weightx = 1.0;
 
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        JLabel lGrupo = new JLabel("Grupo:");
-        UiTheme.styleLabel(lGrupo, false);
-        principal.add(lGrupo, gbc);
+        int row = 0;
 
-        gbc.gridx = 1;
+        row = addLabelCombo(card, gbc, row, "Grupo", null);
         comboGrupo = new JComboBox<>();
         UiTheme.styleCombo(comboGrupo);
         comboGrupo.setRenderer(new DefaultListCellRenderer() {
             @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
-                    boolean isSelected, boolean cellHasFocus) {
-                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof Grupo) {
-                    setText(((Grupo) value).getNome());
-                }
+            public Component getListCellRendererComponent(JList<?> l, Object v, int i,
+                    boolean sel, boolean focus) {
+                Component c = super.getListCellRendererComponent(l, v, i, sel, focus);
+                if (v instanceof Grupo) setText(((Grupo) v).getNome());
                 c.setForeground(UiTheme.FG_PRIMARY);
-                c.setBackground(isSelected ? UiTheme.ACCENT_BLUE : UiTheme.BG_CARD);
+                c.setBackground(sel ? UiTheme.ACCENT_BLUE : UiTheme.BG_CARD);
                 return c;
             }
         });
-        principal.add(comboGrupo, gbc);
+        gbc.gridx = 0; gbc.gridy = row++; gbc.gridwidth = 2;
+        gbc.insets = new Insets(0, 0, 14, 0);
+        card.add(comboGrupo, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        JLabel lPartida = new JLabel("Partida:");
-        UiTheme.styleLabel(lPartida, false);
-        principal.add(lPartida, gbc);
-
-        gbc.gridx = 1;
+        row = addLabelCombo(card, gbc, row, "Partida", null);
         comboPartidas = new JComboBox<>();
         UiTheme.styleCombo(comboPartidas);
-        principal.add(comboPartidas, gbc);
+        gbc.gridy = row++; gbc.insets = new Insets(0, 0, 14, 0);
+        card.add(comboPartidas, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        JLabel lRes = new JLabel("Resultado esperado:");
-        UiTheme.styleLabel(lRes, false);
-        principal.add(lRes, gbc);
-
-        gbc.gridx = 1;
+        row = addLabelCombo(card, gbc, row, "Resultado esperado", null);
         comboResultado = new JComboBox<>(TipoResultado.values());
         UiTheme.styleCombo(comboResultado);
         comboResultado.setRenderer(new DefaultListCellRenderer() {
             @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
-                    boolean isSelected, boolean cellHasFocus) {
-                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof TipoResultado) {
-                    setText(((TipoResultado) value).getDescricao());
-                }
+            public Component getListCellRendererComponent(JList<?> l, Object v, int i,
+                    boolean sel, boolean focus) {
+                Component c = super.getListCellRendererComponent(l, v, i, sel, focus);
+                if (v instanceof TipoResultado) setText(((TipoResultado) v).getDescricao());
                 c.setForeground(UiTheme.FG_PRIMARY);
-                c.setBackground(isSelected ? UiTheme.ACCENT_BLUE : UiTheme.BG_CARD);
+                c.setBackground(sel ? UiTheme.ACCENT_BLUE : UiTheme.BG_CARD);
                 return c;
             }
         });
-        principal.add(comboResultado, gbc);
+        gbc.gridy = row++; gbc.insets = new Insets(0, 0, 16, 0);
+        card.add(comboResultado, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        JLabel lGc = new JLabel("Gols casa:");
-        UiTheme.styleLabel(lGc, false);
-        principal.add(lGc, gbc);
+        JPanel placarPanel = new JPanel(new GridLayout(1, 3, 12, 0));
+        placarPanel.setOpaque(false);
 
-        gbc.gridx = 1;
+        JPanel panelCasa = new JPanel(new GridLayout(2, 1, 0, 4));
+        panelCasa.setOpaque(false);
+        JLabel lCasa = new JLabel("Gols casa");
+        UiTheme.styleLabel(lCasa, false);
         spinnerGolsCasa = new JSpinner(new SpinnerNumberModel(0, 0, 20, 1));
         UiTheme.styleSpinner(spinnerGolsCasa);
-        principal.add(spinnerGolsCasa, gbc);
+        panelCasa.add(lCasa);
+        panelCasa.add(spinnerGolsCasa);
 
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        JLabel lGf = new JLabel("Gols fora:");
-        UiTheme.styleLabel(lGf, false);
-        principal.add(lGf, gbc);
+        JLabel lX = new JLabel("X", SwingConstants.CENTER);
+        lX.setFont(new Font(Font.DIALOG, Font.BOLD, 22));
+        lX.setForeground(UiTheme.ACCENT_GREEN);
 
-        gbc.gridx = 1;
+        JPanel panelFora = new JPanel(new GridLayout(2, 1, 0, 4));
+        panelFora.setOpaque(false);
+        JLabel lFora = new JLabel("Gols fora");
+        UiTheme.styleLabel(lFora, false);
         spinnerGolsFora = new JSpinner(new SpinnerNumberModel(0, 0, 20, 1));
         UiTheme.styleSpinner(spinnerGolsFora);
-        principal.add(spinnerGolsFora, gbc);
+        panelFora.add(lFora);
+        panelFora.add(spinnerGolsFora);
 
-        gbc.gridx = 0;
-        gbc.gridy = 5;
-        gbc.gridwidth = 2;
-        botaoApostar = new JButton("Registrar aposta");
-        UiTheme.stylePrimaryButton(botaoApostar);
-        botaoApostar.addActionListener(this::registrarAposta);
-        principal.add(botaoApostar, gbc);
+        placarPanel.add(panelCasa);
+        placarPanel.add(lX);
+        placarPanel.add(panelFora);
 
-        gbc.gridy = 6;
+        gbc.gridy = row++; gbc.insets = new Insets(0, 0, 18, 0);
+        card.add(placarPanel, gbc);
+
+        gbc.gridy = row++; gbc.insets = new Insets(0, 0, 10, 0);
+        JButton btnApostar = new JButton("Registrar aposta");
+        UiTheme.stylePrimaryButton(btnApostar);
+        btnApostar.addActionListener(e -> registrarAposta());
+        card.add(btnApostar, gbc);
+
+        gbc.gridy = row; gbc.insets = new Insets(0, 0, 0, 0);
         labelStatus = new JLabel(" ");
-        UiTheme.styleLabel(labelStatus, true);
-        principal.add(labelStatus, gbc);
+        labelStatus.setHorizontalAlignment(SwingConstants.CENTER);
+        UiTheme.styleStatusLabel(labelStatus);
+        card.add(labelStatus, gbc);
 
-        add(principal, BorderLayout.CENTER);
+        return card;
+    }
 
-        atualizarDados();
+    private int addLabelCombo(JPanel card, GridBagConstraints gbc, int row,
+                              String texto, Object ignored) {
+        gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 2;
+        gbc.insets = new Insets(0, 0, 4, 0);
+        JLabel lbl = new JLabel(texto);
+        UiTheme.styleLabel(lbl, false);
+        card.add(lbl, gbc);
+        return row + 1;
     }
 
     @Override
@@ -155,22 +154,19 @@ public class ApostasUI extends JPanel implements AtualizavelInterface {
         Grupo gSel = (Grupo) comboGrupo.getSelectedItem();
         String nomeGrupo = gSel != null ? gSel.getNome() : null;
         comboGrupo.removeAllItems();
-        for (Grupo g : grupoService.obterGruposDoParticipante(participanteAtual)) {
+        for (Grupo g : apostaController.listarGruposDoParticipante(participanteAtual)) {
             comboGrupo.addItem(g);
         }
         if (nomeGrupo != null) {
             for (int i = 0; i < comboGrupo.getItemCount(); i++) {
                 Grupo g = comboGrupo.getItemAt(i);
-                if (g != null && nomeGrupo.equals(g.getNome())) {
-                    comboGrupo.setSelectedIndex(i);
-                    break;
-                }
+                if (g != null && nomeGrupo.equals(g.getNome())) { comboGrupo.setSelectedIndex(i); break; }
             }
         }
         if (comboGrupo.getItemCount() == 0) {
-            labelStatus.setText("Ingressa em um grupo na aba Grupos para apostar.");
+            UiTheme.setLabelNeutral(labelStatus, "Ingresse em um grupo na aba Grupos para apostar.");
         } else {
-            labelStatus.setText("Pronto para apostar.");
+            UiTheme.setLabelNeutral(labelStatus, " ");
         }
     }
 
@@ -178,60 +174,31 @@ public class ApostasUI extends JPanel implements AtualizavelInterface {
         Partida pSel = (Partida) comboPartidas.getSelectedItem();
         String ref = pSel != null ? pSel.toString() : null;
         comboPartidas.removeAllItems();
-        for (Partida p : partidaRepository.obterTodas()) {
-            comboPartidas.addItem(p);
-        }
+        for (Partida p : apostaController.listarPartidas()) comboPartidas.addItem(p);
         if (ref != null) {
             for (int i = 0; i < comboPartidas.getItemCount(); i++) {
                 Partida p = comboPartidas.getItemAt(i);
-                if (p != null && ref.equals(p.toString())) {
-                    comboPartidas.setSelectedIndex(i);
-                    return;
-                }
+                if (p != null && ref.equals(p.toString())) { comboPartidas.setSelectedIndex(i); return; }
             }
         }
     }
 
-    private void registrarAposta(ActionEvent e) {
+    private void registrarAposta() {
         try {
             Grupo grupo = (Grupo) comboGrupo.getSelectedItem();
             Partida partida = (Partida) comboPartidas.getSelectedItem();
             TipoResultado resultado = (TipoResultado) comboResultado.getSelectedItem();
-            Integer golsCasa = (Integer) spinnerGolsCasa.getValue();
-            Integer golsFora = (Integer) spinnerGolsFora.getValue();
+            int golsCasa = (Integer) spinnerGolsCasa.getValue();
+            int golsFora = (Integer) spinnerGolsFora.getValue();
 
-            if (grupo == null) {
-                labelStatus.setText("Selecione um grupo ou ingresse em um grupo antes.");
-                return;
-            }
+            apostaController.registrarAposta(grupo, partida, resultado,
+                    golsCasa, golsFora, participanteAtual);
 
-            if (partida == null) {
-                labelStatus.setText("Nenhuma partida disponível.");
-                return;
-            }
-
-            if (resultado == null) {
-                labelStatus.setText("Selecione o resultado esperado.");
-                return;
-            }
-
-            Aposta aposta = new Aposta(participanteAtual, partida, resultado, golsCasa, golsFora);
-
-            apostaService.registrarAposta(aposta);
-
-            grupo.adicionarAposta(aposta);
-
-            labelStatus.setText("Aposta registrada com sucesso.");
-            JOptionPane.showMessageDialog(this, "Aposta registrada com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-
+            UiTheme.setLabelSuccess(labelStatus, "Aposta registrada com sucesso!");
+            JOptionPane.showMessageDialog(this, "Aposta registrada com sucesso!",
+                    "Sucesso", JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception ex) {
-            labelStatus.setText("Erro: " + ex.getMessage());
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Atenção", JOptionPane.WARNING_MESSAGE);
+            UiTheme.setLabelError(labelStatus, ex.getMessage());
         }
     }
 }
-
-
-
-
-

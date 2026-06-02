@@ -1,11 +1,11 @@
 package br.com.futebolbet.ui;
 
-import br.com.futebolbet.models.Participante;
-import br.com.futebolbet.repository.UsuarioRepository;
+import br.com.futebolbet.controller.LoginController;
+import br.com.futebolbet.ui.theme.UiTheme;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 
 public class CadastroUsuarioUI extends JFrame {
 
@@ -13,109 +13,111 @@ public class CadastroUsuarioUI extends JFrame {
     private JTextField txtEmail;
     private JPasswordField txtSenha;
     private JPasswordField txtConfirmaSenha;
-    private JButton btnCadastrar;
-    private JButton btnCancelar;
+    private JLabel labelStatus;
 
-    private UsuarioRepository usuarioRepository;
+    private final LoginController loginController;
 
     public CadastroUsuarioUI() {
-        this.usuarioRepository = UsuarioRepository.getInstance();
+        this.loginController = new LoginController();
+
+        UiTheme.applyDarkOptionPaneDefaults();
 
         setTitle("Cadastro de Participante - Futebol Bet");
-        setSize(400, 300);
+        setSize(420, 420);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
+        setResizable(false);
 
-        JPanel principal = new JPanel(new GridBagLayout());
+        UiTheme.applyRoot(this);
+        setLayout(new BorderLayout());
+
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(UiTheme.BG_CARD);
+        header.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, UiTheme.ACCENT_BORDER),
+                new EmptyBorder(16, 24, 14, 24)));
+        JLabel titulo = new JLabel("Criar conta");
+        titulo.setFont(new Font(Font.DIALOG, Font.BOLD, 18));
+        titulo.setForeground(UiTheme.FG_PRIMARY);
+        header.add(titulo, BorderLayout.WEST);
+        JLabel sub = new JLabel("Preencha os dados para se cadastrar");
+        sub.setFont(new Font(Font.DIALOG, Font.PLAIN, 12));
+        sub.setForeground(UiTheme.FG_MUTED);
+        header.add(sub, BorderLayout.SOUTH);
+        add(header, BorderLayout.NORTH);
+
+        JPanel form = new JPanel(new GridBagLayout());
+        UiTheme.applyPanel(form);
+        form.setBorder(new EmptyBorder(24, 28, 20, 28));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.weightx = 1.0;
 
-        // Nome
-        gbc.gridx = 0; gbc.gridy = 0;
-        principal.add(new JLabel("Nome Completo:"), gbc);
+        String[][] campos = {
+            {"Nome completo", "nome"},
+            {"E-mail", "email"},
+            {"Senha", "senha"},
+            {"Confirmar senha", "confirmar"}
+        };
 
-        gbc.gridx = 1;
-        txtNome = new JTextField(15);
-        principal.add(txtNome, gbc);
+        int row = 0;
+        for (String[] campo : campos) {
+            gbc.gridx = 0; gbc.gridy = row++; gbc.insets = new Insets(0, 0, 4, 0);
+            JLabel lbl = new JLabel(campo[0]);
+            UiTheme.styleLabel(lbl, false);
+            form.add(lbl, gbc);
 
-        // Email
-        gbc.gridx = 0; gbc.gridy = 1;
-        principal.add(new JLabel("Email:"), gbc);
+            gbc.gridy = row++; gbc.insets = new Insets(0, 0, 14, 0);
+            if ("senha".equals(campo[1])) {
+                txtSenha = new JPasswordField();
+                UiTheme.stylePasswordField(txtSenha);
+                form.add(txtSenha, gbc);
+            } else if ("confirmar".equals(campo[1])) {
+                txtConfirmaSenha = new JPasswordField();
+                UiTheme.stylePasswordField(txtConfirmaSenha);
+                form.add(txtConfirmaSenha, gbc);
+            } else if ("email".equals(campo[1])) {
+                txtEmail = new JTextField();
+                UiTheme.styleTextField(txtEmail);
+                form.add(txtEmail, gbc);
+            } else {
+                txtNome = new JTextField();
+                UiTheme.styleTextField(txtNome);
+                form.add(txtNome, gbc);
+            }
+        }
 
-        gbc.gridx = 1;
-        txtEmail = new JTextField(15);
-        principal.add(txtEmail, gbc);
+        gbc.gridy = row++; gbc.insets = new Insets(4, 0, 8, 0);
+        JButton btnCadastrar = new JButton("Criar conta");
+        UiTheme.stylePrimaryButton(btnCadastrar);
+        btnCadastrar.addActionListener(e -> realizarCadastro());
+        form.add(btnCadastrar, gbc);
 
-        // Senha
-        gbc.gridx = 0; gbc.gridy = 2;
-        principal.add(new JLabel("Senha:"), gbc);
+        gbc.gridy = row; gbc.insets = new Insets(0, 0, 0, 0);
+        labelStatus = new JLabel(" ");
+        labelStatus.setHorizontalAlignment(SwingConstants.CENTER);
+        UiTheme.styleStatusLabel(labelStatus);
+        form.add(labelStatus, gbc);
 
-        gbc.gridx = 1;
-        txtSenha = new JPasswordField(15);
-        principal.add(txtSenha, gbc);
-
-        // Confirmar Senha
-        gbc.gridx = 0; gbc.gridy = 3;
-        principal.add(new JLabel("Confirmar Senha:"), gbc);
-
-        gbc.gridx = 1;
-        txtConfirmaSenha = new JPasswordField(15);
-        principal.add(txtConfirmaSenha, gbc);
-
-        // Botoes
-        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-
-        btnCancelar = new JButton("Cancelar");
-        btnCancelar.addActionListener(e -> dispose());
-
-        btnCadastrar = new JButton("Cadastrar");
-        btnCadastrar.addActionListener(this::realizarCadastro);
-
-        painelBotoes.add(btnCancelar);
-        painelBotoes.add(btnCadastrar);
-
-        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2;
-        principal.add(painelBotoes, gbc);
-
-        add(principal);
+        add(form, BorderLayout.CENTER);
         setVisible(true);
     }
 
-    private void realizarCadastro(ActionEvent e) {
+    private void realizarCadastro() {
         String nome = txtNome.getText().trim();
         String email = txtEmail.getText().trim();
         String senha = new String(txtSenha.getPassword());
-        String confirmaSenha = new String(txtConfirmaSenha.getPassword());
+        String confirma = new String(txtConfirmaSenha.getPassword());
 
-        if (nome.isEmpty() || email.isEmpty() || senha.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Todos os campos são obrigatórios!", "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
+        try {
+            loginController.cadastrarParticipante(nome, email, senha, confirma);
+            UiTheme.setLabelSuccess(labelStatus, "Cadastro realizado! Faca o login.");
+            JOptionPane.showMessageDialog(this,
+                    "Cadastro realizado com sucesso!",
+                    "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+            dispose();
+        } catch (Exception ex) {
+            UiTheme.setLabelError(labelStatus, ex.getMessage());
         }
-
-        if (!senha.equals(confirmaSenha)) {
-            JOptionPane.showMessageDialog(this, "As senhas não coincidem!", "Erro", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        boolean emailExiste = usuarioRepository.obterTodos().stream()
-                .anyMatch(u -> u.getEmail().equals(email));
-
-        if (emailExiste) {
-            JOptionPane.showMessageDialog(this, "Este email já está cadastrado!", "Erro", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        Participante novoParticipante = new Participante(nome, email, senha);
-
-        usuarioRepository.adicionar(novoParticipante);
-
-        JOptionPane.showMessageDialog(this, "Cadastro realizado com sucesso! Agora você pode fazer o login.");
-        dispose();
     }
 }
-
-
-
-
-

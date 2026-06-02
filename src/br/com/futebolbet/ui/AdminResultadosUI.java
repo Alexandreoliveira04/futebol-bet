@@ -1,98 +1,98 @@
 package br.com.futebolbet.ui;
 
+import br.com.futebolbet.controller.ResultadoController;
 import br.com.futebolbet.models.Partida;
-import br.com.futebolbet.models.Resultado;
-import br.com.futebolbet.repository.PartidaRepository;
-import br.com.futebolbet.service.ApostaService;
 import br.com.futebolbet.ui.theme.UiTheme;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 
 public class AdminResultadosUI extends JPanel implements AtualizavelInterface {
 
     private JComboBox<Partida> comboPartidas;
     private JSpinner spinnerGolsCasa;
     private JSpinner spinnerGolsFora;
-    private JButton botaoRegistrar;
     private JLabel labelStatus;
 
-    private PartidaRepository partidaRepository;
-    private ApostaService apostaService;
+    private final ResultadoController resultadoController;
 
     public AdminResultadosUI() {
-        this.partidaRepository = PartidaRepository.getInstance();
-        this.apostaService = new ApostaService();
+        this.resultadoController = new ResultadoController();
 
         UiTheme.applyPanel(this);
-        setLayout(new BorderLayout());
-        setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
+        setLayout(new BorderLayout(0, 12));
+        setBorder(new EmptyBorder(8, 8, 8, 8));
 
-        JPanel principal = new JPanel();
-        UiTheme.applyPanel(principal);
-        principal.setLayout(new GridBagLayout());
+        add(UiTheme.createSectionHeader("Registrar Resultado"), BorderLayout.NORTH);
+        add(criarFormulario(), BorderLayout.CENTER);
+
+        atualizarDados();
+    }
+
+    private JPanel criarFormulario() {
+        JPanel card = new JPanel(new GridBagLayout());
+        UiTheme.applyPanelCard(card);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.weightx = 1.0;
 
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        JLabel titulo = new JLabel("Registrar resultado da partida");
-        titulo.setFont(new Font("Arial", Font.BOLD, 14));
-        UiTheme.styleLabel(titulo, false);
-        principal.add(titulo, gbc);
-        gbc.gridwidth = 1;
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        gbc.insets = new Insets(0, 0, 6, 0);
+        JLabel lPartida = new JLabel("Partida");
+        UiTheme.styleLabel(lPartida, false);
+        card.add(lPartida, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        JLabel l1 = new JLabel("Partida:");
-        UiTheme.styleLabel(l1, false);
-        principal.add(l1, gbc);
-
-        gbc.gridx = 1;
+        gbc.gridy = 1; gbc.insets = new Insets(0, 0, 20, 0);
         comboPartidas = new JComboBox<>();
         UiTheme.styleCombo(comboPartidas);
-        principal.add(comboPartidas, gbc);
+        card.add(comboPartidas, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        JLabel l2 = new JLabel("Gols mandante (casa):");
-        UiTheme.styleLabel(l2, false);
-        principal.add(l2, gbc);
+        JPanel placarPanel = new JPanel(new GridLayout(1, 3, 12, 0));
+        placarPanel.setOpaque(false);
 
-        gbc.gridx = 1;
+        JPanel panelCasa = new JPanel(new GridLayout(2, 1, 0, 4));
+        panelCasa.setOpaque(false);
+        JLabel lCasa = new JLabel("Gols mandante (casa)");
+        UiTheme.styleLabel(lCasa, false);
         spinnerGolsCasa = new JSpinner(new SpinnerNumberModel(0, 0, 20, 1));
         UiTheme.styleSpinner(spinnerGolsCasa);
-        principal.add(spinnerGolsCasa, gbc);
+        panelCasa.add(lCasa);
+        panelCasa.add(spinnerGolsCasa);
 
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        JLabel l3 = new JLabel("Gols visitante (fora):");
-        UiTheme.styleLabel(l3, false);
-        principal.add(l3, gbc);
+        JLabel lX = new JLabel("X", SwingConstants.CENTER);
+        lX.setFont(new Font(Font.DIALOG, Font.BOLD, 22));
+        lX.setForeground(UiTheme.ACCENT_GREEN);
 
-        gbc.gridx = 1;
+        JPanel panelFora = new JPanel(new GridLayout(2, 1, 0, 4));
+        panelFora.setOpaque(false);
+        JLabel lFora = new JLabel("Gols visitante (fora)");
+        UiTheme.styleLabel(lFora, false);
         spinnerGolsFora = new JSpinner(new SpinnerNumberModel(0, 0, 20, 1));
         UiTheme.styleSpinner(spinnerGolsFora);
-        principal.add(spinnerGolsFora, gbc);
+        panelFora.add(lFora);
+        panelFora.add(spinnerGolsFora);
 
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        gbc.gridwidth = 2;
-        botaoRegistrar = new JButton("Registrar resultado");
-        UiTheme.stylePrimaryButton(botaoRegistrar);
-        botaoRegistrar.addActionListener(this::registrarResultado);
-        principal.add(botaoRegistrar, gbc);
+        placarPanel.add(panelCasa);
+        placarPanel.add(lX);
+        placarPanel.add(panelFora);
 
-        gbc.gridy = 5;
+        gbc.gridy = 2; gbc.insets = new Insets(0, 0, 20, 0);
+        card.add(placarPanel, gbc);
+
+        gbc.gridy = 3; gbc.insets = new Insets(0, 0, 10, 0);
+        JButton btnRegistrar = new JButton("Registrar resultado");
+        UiTheme.stylePrimaryButton(btnRegistrar);
+        btnRegistrar.addActionListener(e -> registrarResultado());
+        card.add(btnRegistrar, gbc);
+
+        gbc.gridy = 4; gbc.insets = new Insets(0, 0, 0, 0);
         labelStatus = new JLabel("Pronto para registrar resultados.");
-        UiTheme.styleLabel(labelStatus, true);
-        principal.add(labelStatus, gbc);
+        labelStatus.setHorizontalAlignment(SwingConstants.CENTER);
+        UiTheme.styleStatusLabel(labelStatus);
+        card.add(labelStatus, gbc);
 
-        add(principal, BorderLayout.CENTER);
-        atualizarDados();
+        return card;
     }
 
     @Override
@@ -100,41 +100,26 @@ public class AdminResultadosUI extends JPanel implements AtualizavelInterface {
         Partida sel = (Partida) comboPartidas.getSelectedItem();
         String ref = sel != null ? sel.toString() : null;
         comboPartidas.removeAllItems();
-        for (Partida p : partidaRepository.obterTodas()) {
-            comboPartidas.addItem(p);
-        }
+        for (Partida p : resultadoController.listarPartidas()) comboPartidas.addItem(p);
         if (ref != null) {
             for (int i = 0; i < comboPartidas.getItemCount(); i++) {
                 Partida p = comboPartidas.getItemAt(i);
-                if (p != null && ref.equals(p.toString())) {
-                    comboPartidas.setSelectedIndex(i);
-                    return;
-                }
+                if (p != null && ref.equals(p.toString())) { comboPartidas.setSelectedIndex(i); return; }
             }
         }
     }
 
-    private void registrarResultado(ActionEvent e) {
+    private void registrarResultado() {
         try {
             Partida partida = (Partida) comboPartidas.getSelectedItem();
-
-            if (partida == null) {
-                labelStatus.setText("Nenhuma partida selecionada.");
-                return;
-            }
-
-            Integer golsCasa = (Integer) spinnerGolsCasa.getValue();
-            Integer golsFora = (Integer) spinnerGolsFora.getValue();
-
-            Resultado resultado = new Resultado(golsCasa, golsFora);
-            partida.setResultado(resultado);
-
-            apostaService.processarResultadosPartida(partida);
-
-            labelStatus.setText("Resultado registrado. Pontos calculados.");
-            JOptionPane.showMessageDialog(this, "Resultado registrado com sucesso!");
+            int golsCasa = (Integer) spinnerGolsCasa.getValue();
+            int golsFora = (Integer) spinnerGolsFora.getValue();
+            resultadoController.registrarResultado(partida, golsCasa, golsFora);
+            UiTheme.setLabelSuccess(labelStatus, "Resultado registrado. Pontos calculados!");
+            JOptionPane.showMessageDialog(this, "Resultado registrado com sucesso!",
+                    "Sucesso", JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception ex) {
-            labelStatus.setText("Erro: " + ex.getMessage());
+            UiTheme.setLabelError(labelStatus, ex.getMessage());
         }
     }
 }
