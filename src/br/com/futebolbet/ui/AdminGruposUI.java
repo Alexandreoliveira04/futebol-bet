@@ -1,81 +1,89 @@
 package br.com.futebolbet.ui;
 
+import br.com.futebolbet.controller.GrupoController;
 import br.com.futebolbet.models.Grupo;
-import br.com.futebolbet.service.GrupoService;
 import br.com.futebolbet.ui.theme.UiTheme;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 
 public class AdminGruposUI extends JPanel implements AtualizavelInterface {
 
     private JTextField txtNomeGrupo;
-    private JButton btnCriarGrupo;
-    private JList<String> listGrupos;
     private DefaultListModel<String> listModelGrupos;
+    private JLabel labelStatus;
 
-    private GrupoService grupoService;
+    private final GrupoController grupoController;
 
     public AdminGruposUI() {
-        this.grupoService = new GrupoService();
+        this.grupoController = new GrupoController();
 
         UiTheme.applyPanel(this);
-        setLayout(new GridBagLayout());
-        setBorder(BorderFactory.createEmptyBorder(16, 20, 16, 20));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(10, 10, 10, 10);
+        setLayout(new BorderLayout(0, 12));
+        setBorder(new EmptyBorder(8, 8, 8, 8));
 
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        JLabel lblTitulo = new JLabel("Criar novo grupo (máx. 5 no sistema)");
-        lblTitulo.setFont(lblTitulo.getFont().deriveFont(Font.BOLD, 14f));
-        UiTheme.styleLabel(lblTitulo, false);
-        add(lblTitulo, gbc);
-
-        gbc.gridy = 1;
-        gbc.gridwidth = 1;
-        JLabel n = new JLabel("Nome do grupo:");
-        UiTheme.styleLabel(n, false);
-        add(n, gbc);
-
-        gbc.gridx = 1;
-        txtNomeGrupo = new JTextField(15);
-        UiTheme.styleTextField(txtNomeGrupo);
-        add(txtNomeGrupo, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2;
-        btnCriarGrupo = new JButton("Criar grupo");
-        UiTheme.stylePrimaryButton(btnCriarGrupo);
-        btnCriarGrupo.addActionListener(this::criarGrupo);
-        add(btnCriarGrupo, gbc);
-
-        gbc.gridy = 3;
-        JSeparator sep = new JSeparator();
-        sep.setForeground(new Color(0x00, 0x33, 0x55));
-        add(sep, gbc);
-
-        gbc.gridy = 4;
-        JLabel lblLista = new JLabel("Grupos existentes");
-        lblLista.setFont(lblLista.getFont().deriveFont(Font.BOLD, 14f));
-        UiTheme.styleLabel(lblLista, false);
-        add(lblLista, gbc);
-
-        gbc.gridy = 5;
-        listModelGrupos = new DefaultListModel<>();
-        listGrupos = new JList<>(listModelGrupos);
-        listGrupos.setVisibleRowCount(6);
-        listGrupos.setBackground(UiTheme.BG_CARD);
-        listGrupos.setForeground(UiTheme.FG_PRIMARY);
-        JScrollPane scrollPane = new JScrollPane(listGrupos);
-        UiTheme.styleScrollPane(scrollPane);
-        add(scrollPane, gbc);
+        add(UiTheme.createSectionHeader("Gerenciar Grupos"), BorderLayout.NORTH);
+        add(criarFormulario(), BorderLayout.CENTER);
+        add(criarPainelLista(), BorderLayout.SOUTH);
 
         atualizarListaGrupos();
+    }
+
+    private JPanel criarFormulario() {
+        JPanel card = new JPanel(new GridBagLayout());
+        UiTheme.applyPanelCard(card);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        gbc.insets = new Insets(0, 0, 6, 0);
+        JLabel lbl = new JLabel("Nome do grupo (maximo 5 grupos no sistema)");
+        UiTheme.styleLabel(lbl, false);
+        card.add(lbl, gbc);
+
+        gbc.gridy = 1; gbc.insets = new Insets(0, 0, 14, 0);
+        txtNomeGrupo = new JTextField();
+        UiTheme.styleTextField(txtNomeGrupo);
+        txtNomeGrupo.addActionListener(e -> criarGrupo());
+        card.add(txtNomeGrupo, gbc);
+
+        gbc.gridy = 2; gbc.insets = new Insets(0, 0, 10, 0);
+        JButton btnCriar = new JButton("Criar grupo");
+        UiTheme.stylePrimaryButton(btnCriar);
+        btnCriar.addActionListener(e -> criarGrupo());
+        card.add(btnCriar, gbc);
+
+        gbc.gridy = 3; gbc.insets = new Insets(0, 0, 0, 0);
+        labelStatus = new JLabel(" ");
+        labelStatus.setHorizontalAlignment(SwingConstants.CENTER);
+        UiTheme.styleStatusLabel(labelStatus);
+        card.add(labelStatus, gbc);
+
+        return card;
+    }
+
+    private JPanel criarPainelLista() {
+        JPanel painel = new JPanel(new BorderLayout(0, 8));
+        UiTheme.applyPanel(painel);
+
+        painel.add(UiTheme.createSectionHeader("Grupos Existentes"), BorderLayout.NORTH);
+
+        listModelGrupos = new DefaultListModel<>();
+        JList<String> listGrupos = new JList<>(listModelGrupos);
+        listGrupos.setBackground(UiTheme.BG_CARD);
+        listGrupos.setForeground(UiTheme.FG_PRIMARY);
+        listGrupos.setFont(new Font(Font.DIALOG, Font.PLAIN, 13));
+        listGrupos.setFixedCellHeight(34);
+        listGrupos.setEnabled(false);
+
+        JScrollPane scroll = new JScrollPane(listGrupos);
+        UiTheme.styleScrollPane(scroll);
+        scroll.setPreferredSize(new Dimension(0, 180));
+        painel.add(scroll, BorderLayout.CENTER);
+
+        return painel;
     }
 
     @Override
@@ -83,34 +91,23 @@ public class AdminGruposUI extends JPanel implements AtualizavelInterface {
         atualizarListaGrupos();
     }
 
-    private void criarGrupo(ActionEvent e) {
+    private void criarGrupo() {
         try {
-            String nomeGrupo = txtNomeGrupo.getText().trim();
-            if (nomeGrupo.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Digite um nome para o grupo!", "Aviso", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
-            grupoService.criarGrupo(nomeGrupo);
-
-            JOptionPane.showMessageDialog(this, "Grupo '" + nomeGrupo + "' criado com sucesso!");
+            grupoController.criarGrupo(txtNomeGrupo.getText());
+            UiTheme.setLabelSuccess(labelStatus, "Grupo criado com sucesso!");
             txtNomeGrupo.setText("");
             atualizarListaGrupos();
-
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro de validação", JOptionPane.ERROR_MESSAGE);
+            UiTheme.setLabelError(labelStatus, ex.getMessage());
         }
     }
 
     private void atualizarListaGrupos() {
         listModelGrupos.clear();
-        for (Grupo g : grupoService.obterTodosGrupos()) {
-            listModelGrupos.addElement(g.getNome() + " (" + g.getParticipantes().size() + "/5 participantes)");
+        for (Grupo g : grupoController.listarGrupos()) {
+            listModelGrupos.addElement(
+                g.getNome() + "  —  " + g.getParticipantes().size() + " / 5 participantes"
+            );
         }
     }
 }
-
-
-
-
-

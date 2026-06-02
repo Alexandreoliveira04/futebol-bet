@@ -9,51 +9,46 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class GrupoService {
-    private GrupoRepository grupoRepository;
 
-    public GrupoService(){
+    private final GrupoRepository grupoRepository;
+
+    public GrupoService() {
         this.grupoRepository = GrupoRepository.getInstance();
     }
 
-    public void criarGrupo(String nomeGrupo) throws Exception{
-        if(grupoRepository.obterTodos().size() >= 5){
-            throw new Exception("O sistema já atingiu o limite máximo de 5 grupos");
+    public void criarGrupo(String nomeGrupo) throws Exception {
+        if (nomeGrupo == null || nomeGrupo.trim().isEmpty()) {
+            throw new Exception("Digite um nome para o grupo.");
         }
-
-        if(grupoRepository.obterPorNome(nomeGrupo) != null){
-            throw new Exception("Já existe um grupo cadastrado com este nome");
+        if (grupoRepository.obterTodos().size() >= 5) {
+            throw new Exception("O sistema já atingiu o limite máximo de 5 grupos.");
         }
-
-        Grupo novoGrupo = new Grupo(nomeGrupo);
+        if (grupoRepository.obterPorNome(nomeGrupo.trim()) != null) {
+            throw new Exception("Já existe um grupo cadastrado com este nome.");
+        }
+        Grupo novoGrupo = new Grupo(nomeGrupo.trim());
         grupoRepository.adicionar(novoGrupo);
     }
 
-    public void ingressarNoGrupo(Grupo grupo, Participante participante) throws Exception{
-        if(grupo.getParticipantes().contains(participante)){
-            throw new Exception("O participante já faz parte deste grupo");
+    public void ingressarNoGrupo(Grupo grupo, Participante participante) throws Exception {
+        if (grupo.getParticipantes().contains(participante)) {
+            throw new Exception("Você já faz parte deste grupo.");
         }
-
-        boolean adicinadoComSucesso = grupo.adicionarParticipante(participante);
-
-        if(!adicinadoComSucesso){
-            throw new Exception("Este grupo já atingiu a capacidade máxima de 5 participantes");
+        boolean adicionado = grupo.adicionarParticipante(participante);
+        if (!adicionado) {
+            throw new Exception("Este grupo já atingiu a capacidade máxima de 5 participantes.");
         }
+        grupoRepository.salvarMembro(grupo, participante);
     }
 
-    public java.util.List<Grupo> obterTodosGrupos() {
+    public List<Grupo> obterTodosGrupos() {
         return grupoRepository.obterTodos();
     }
 
     public List<Grupo> obterGruposDoParticipante(Participante participante) {
-        if (participante == null) {
-            return new ArrayList<>();
-        }
+        if (participante == null) return new ArrayList<>();
         return obterTodosGrupos().stream()
                 .filter(g -> g.getParticipantes().contains(participante))
                 .collect(Collectors.toList());
     }
 }
-
-
-
-

@@ -1,13 +1,12 @@
 package br.com.futebolbet.ui;
 
+import br.com.futebolbet.controller.LoginController;
 import br.com.futebolbet.models.Usuario;
-import br.com.futebolbet.repository.UsuarioRepository;
-import br.com.futebolbet.service.AuthService;
 import br.com.futebolbet.ui.theme.UiTheme;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 
 public class LoginUi extends JFrame {
 
@@ -15,109 +14,118 @@ public class LoginUi extends JFrame {
     private JPasswordField senhaField;
     private JButton loginButton;
     private JButton cadastrarButton;
+    private JLabel labelStatus;
 
-    private AuthService authService;
-    private UsuarioRepository usuarioRepository;
+    private final LoginController loginController;
 
     public LoginUi() {
-        this.authService = new AuthService();
-        this.usuarioRepository = UsuarioRepository.getInstance();
+        this.loginController = new LoginController();
 
         UiTheme.applyDarkOptionPaneDefaults();
-        UIManager.put("Panel.background", UiTheme.BG_PRIMARY);
-        UIManager.put("Label.foreground", UiTheme.FG_PRIMARY);
 
-        setTitle("Login - Futebol Bet");
-        setSize(520, 380);
-        setMinimumSize(new Dimension(480, 340));
+        setTitle("Futebol Bet — Login");
+        setSize(480, 420);
+        setMinimumSize(new Dimension(420, 360));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        setResizable(false);
 
         UiTheme.applyRoot(this);
         setLayout(new BorderLayout());
 
-        JPanel centro = new JPanel(new GridBagLayout());
-        UiTheme.applyPanel(centro);
-        centro.setBorder(BorderFactory.createEmptyBorder(32, 40, 32, 40));
+        add(criarPainelLogo(), BorderLayout.NORTH);
+        add(criarPainelFormulario(), BorderLayout.CENTER);
+    }
+
+    private JPanel criarPainelLogo() {
+        JPanel painel = new JPanel(new BorderLayout());
+        painel.setBackground(UiTheme.BG_CARD);
+        painel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, UiTheme.ACCENT_BORDER),
+                new EmptyBorder(24, 32, 20, 32)));
+
+        JLabel icone = new JLabel("FUTEBOL BET");
+        icone.setFont(new Font(Font.DIALOG, Font.BOLD, 26));
+        icone.setForeground(UiTheme.ACCENT_GREEN);
+        painel.add(icone, BorderLayout.WEST);
+
+        JLabel sub = new JLabel("Plataforma de bolao esportivo");
+        sub.setFont(new Font(Font.DIALOG, Font.PLAIN, 12));
+        sub.setForeground(UiTheme.FG_MUTED);
+        painel.add(sub, BorderLayout.SOUTH);
+
+        return painel;
+    }
+
+    private JPanel criarPainelFormulario() {
+        JPanel painel = new JPanel(new GridBagLayout());
+        UiTheme.applyPanel(painel);
+        painel.setBorder(new EmptyBorder(28, 40, 28, 40));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(12, 8, 12, 8);
+        gbc.weightx = 1.0;
 
-        JLabel titulo = new JLabel("Futebol Bet");
-        titulo.setFont(titulo.getFont().deriveFont(Font.BOLD, 22f));
-        UiTheme.styleLabel(titulo, false);
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        centro.add(titulo, gbc);
-
-        JLabel sub = new JLabel("Entre com seu e-mail e senha");
-        UiTheme.styleLabel(sub, true);
-        gbc.gridy = 1;
-        centro.add(sub, gbc);
-
-        gbc.gridwidth = 1;
-        gbc.gridy = 2;
-        gbc.gridx = 0;
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        gbc.insets = new Insets(0, 0, 6, 0);
         JLabel lEmail = new JLabel("E-mail");
         UiTheme.styleLabel(lEmail, false);
-        centro.add(lEmail, gbc);
+        painel.add(lEmail, gbc);
 
-        gbc.gridx = 1;
-        emailField = new JTextField(22);
+        gbc.gridy = 1; gbc.insets = new Insets(0, 0, 16, 0);
+        emailField = new JTextField();
         UiTheme.styleTextField(emailField);
-        centro.add(emailField, gbc);
+        painel.add(emailField, gbc);
 
-        gbc.gridy = 3;
-        gbc.gridx = 0;
+        gbc.gridy = 2; gbc.insets = new Insets(0, 0, 6, 0);
         JLabel lSenha = new JLabel("Senha");
         UiTheme.styleLabel(lSenha, false);
-        centro.add(lSenha, gbc);
+        painel.add(lSenha, gbc);
 
-        gbc.gridx = 1;
-        senhaField = new JPasswordField(22);
+        gbc.gridy = 3; gbc.insets = new Insets(0, 0, 20, 0);
+        senhaField = new JPasswordField();
         UiTheme.stylePasswordField(senhaField);
-        centro.add(senhaField, gbc);
+        senhaField.addActionListener(e -> realizarLogin());
+        painel.add(senhaField, gbc);
 
-        gbc.gridy = 4;
-        gbc.gridx = 0;
-        gbc.gridwidth = 2;
-        JPanel botoes = new JPanel(new GridLayout(1, 2, 16, 0));
-        UiTheme.applyPanel(botoes);
-        cadastrarButton = new JButton("Cadastrar-se");
-        UiTheme.styleSecondaryButton(cadastrarButton);
-        cadastrarButton.addActionListener(e -> abrirTelaCadastro());
+        gbc.gridy = 4; gbc.insets = new Insets(0, 0, 10, 0);
         loginButton = new JButton("Entrar");
         UiTheme.stylePrimaryButton(loginButton);
-        loginButton.addActionListener(this::realizarLogin);
-        botoes.add(cadastrarButton);
-        botoes.add(loginButton);
-        centro.add(botoes, gbc);
+        loginButton.addActionListener(e -> realizarLogin());
+        painel.add(loginButton, gbc);
 
-        add(centro, BorderLayout.CENTER);
+        gbc.gridy = 5; gbc.insets = new Insets(0, 0, 16, 0);
+        cadastrarButton = new JButton("Cadastrar-se");
+        UiTheme.styleSecondaryButton(cadastrarButton);
+        cadastrarButton.addActionListener(e -> new CadastroUsuarioUI());
+        painel.add(cadastrarButton, gbc);
+
+        gbc.gridy = 6; gbc.insets = new Insets(0, 0, 0, 0);
+        labelStatus = new JLabel(" ");
+        labelStatus.setHorizontalAlignment(SwingConstants.CENTER);
+        UiTheme.styleStatusLabel(labelStatus);
+        painel.add(labelStatus, gbc);
+
+        return painel;
     }
 
-    private void realizarLogin(ActionEvent e) {
-        String email = emailField.getText();
+    private void realizarLogin() {
+        String email = emailField.getText().trim();
         String senha = new String(senhaField.getPassword());
 
-        Usuario usuarioLogado = authService.login(usuarioRepository.obterTodos(), email, senha);
+        if (email.isEmpty() || senha.isEmpty()) {
+            UiTheme.setLabelError(labelStatus, "Preencha e-mail e senha.");
+            return;
+        }
+
+        Usuario usuarioLogado = loginController.autenticar(email, senha);
 
         if (usuarioLogado != null) {
-            JOptionPane.showMessageDialog(this, "Bem-vindo(a), " + usuarioLogado.getNome() + "!");
             new MenuPrincipalUI(usuarioLogado);
             dispose();
         } else {
-            JOptionPane.showMessageDialog(this, "E-mail ou senha inválidos.", "Erro", JOptionPane.ERROR_MESSAGE);
+            UiTheme.setLabelError(labelStatus, "E-mail ou senha invalidos.");
+            senhaField.setText("");
         }
     }
-
-    private void abrirTelaCadastro() {
-        new CadastroUsuarioUI();
-    }
 }
-
-
-
-

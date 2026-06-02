@@ -1,13 +1,12 @@
 package br.com.futebolbet.ui;
 
+import br.com.futebolbet.controller.CampeonatoController;
 import br.com.futebolbet.models.Clube;
-import br.com.futebolbet.repository.ClubeRepository;
-import br.com.futebolbet.service.CampeonatoService;
 import br.com.futebolbet.ui.theme.UiTheme;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -21,63 +20,63 @@ public class AdminCampeonatoUI extends JPanel implements AtualizavelInterface {
     private JList<Clube> listClubes;
     private DefaultListModel<Clube> listModelClubes;
     private Set<Clube> clubesSelecionados;
-    private JButton btnCriarCampeonato;
+    private JLabel labelStatus;
+    private JLabel lblContagem;
 
-    private final ClubeRepository clubeRepository;
-    private final CampeonatoService campeonatoService;
+    private final CampeonatoController campeonatoController;
 
     public AdminCampeonatoUI() {
-        this.clubeRepository = ClubeRepository.getInstance();
-        this.campeonatoService = new CampeonatoService();
+        this.campeonatoController = new CampeonatoController();
         this.clubesSelecionados = new HashSet<>();
 
         UiTheme.applyPanel(this);
-        setLayout(new BorderLayout());
-        setBorder(BorderFactory.createEmptyBorder(16, 20, 16, 20));
+        setLayout(new BorderLayout(0, 12));
+        setBorder(new EmptyBorder(8, 8, 8, 8));
 
-        JPanel principal = new JPanel(new GridBagLayout());
-        UiTheme.applyPanel(principal);
+        add(UiTheme.createSectionHeader("Criar Campeonato"), BorderLayout.NORTH);
+        add(criarFormulario(), BorderLayout.CENTER);
+
+        atualizarListaClubes();
+    }
+
+    private JPanel criarFormulario() {
+        JPanel card = new JPanel(new GridBagLayout());
+        UiTheme.applyPanelCard(card);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.weightx = 1.0;
 
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        JLabel lblTitulo = new JLabel("Criar campeonato (máx. 8 clubes)");
-        lblTitulo.setFont(lblTitulo.getFont().deriveFont(Font.BOLD, 14f));
-        UiTheme.styleLabel(lblTitulo, false);
-        principal.add(lblTitulo, gbc);
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        gbc.insets = new Insets(0, 0, 6, 0);
+        JLabel lNome = new JLabel("Nome do campeonato");
+        UiTheme.styleLabel(lNome, false);
+        card.add(lNome, gbc);
 
-        gbc.gridy = 1;
-        gbc.gridwidth = 1;
-        JLabel n2 = new JLabel("Nome do campeonato:");
-        UiTheme.styleLabel(n2, false);
-        principal.add(n2, gbc);
-
-        gbc.gridx = 1;
-        txtNomeCampeonato = new JTextField(18);
+        gbc.gridy = 1; gbc.insets = new Insets(0, 0, 14, 0);
+        txtNomeCampeonato = new JTextField();
         UiTheme.styleTextField(txtNomeCampeonato);
-        principal.add(txtNomeCampeonato, gbc);
+        card.add(txtNomeCampeonato, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2;
+        gbc.gridy = 2; gbc.insets = new Insets(0, 0, 4, 0);
+        JPanel linhaHint = new JPanel(new BorderLayout());
+        linhaHint.setOpaque(false);
         JLabel hint = new JLabel("Selecione os clubes (clique para marcar/desmarcar):");
         UiTheme.styleLabel(hint, true);
-        principal.add(hint, gbc);
+        linhaHint.add(hint, BorderLayout.WEST);
+        lblContagem = new JLabel("0 / 8 selecionados");
+        UiTheme.styleLabel(lblContagem, true);
+        linhaHint.add(lblContagem, BorderLayout.EAST);
+        card.add(linhaHint, gbc);
 
-        gbc.gridy = 3;
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
+        gbc.gridy = 3; gbc.fill = GridBagConstraints.BOTH;
+        gbc.weighty = 1.0; gbc.insets = new Insets(0, 0, 14, 0);
         listModelClubes = new DefaultListModel<>();
         listClubes = new JList<>(listModelClubes);
         listClubes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         listClubes.setCellRenderer(new CheckBoxClubeRenderer());
         listClubes.setBackground(UiTheme.BG_CARD);
         listClubes.setForeground(UiTheme.FG_PRIMARY);
-        listClubes.setVisibleRowCount(-1);
+        listClubes.setFixedCellHeight(32);
         listClubes.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -87,24 +86,32 @@ public class AdminCampeonatoUI extends JPanel implements AtualizavelInterface {
                     if (clubesSelecionados.contains(clube)) {
                         clubesSelecionados.remove(clube);
                     } else {
-                        clubesSelecionados.add(clube);
+                        if (clubesSelecionados.size() < 8) clubesSelecionados.add(clube);
                     }
+                    lblContagem.setText(clubesSelecionados.size() + " / 8 selecionados");
                     listClubes.repaint();
                 }
             }
         });
-        principal.add(listClubes, gbc);
+        JScrollPane scroll = new JScrollPane(listClubes);
+        UiTheme.styleScrollPane(scroll);
+        scroll.setPreferredSize(new Dimension(0, 160));
+        card.add(scroll, gbc);
 
-        gbc.gridy = 4;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weighty = 0;
-        btnCriarCampeonato = new JButton("Criar campeonato");
-        UiTheme.stylePrimaryButton(btnCriarCampeonato);
-        btnCriarCampeonato.addActionListener(this::criarCampeonato);
-        principal.add(btnCriarCampeonato, gbc);
+        gbc.gridy = 4; gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weighty = 0; gbc.insets = new Insets(0, 0, 8, 0);
+        JButton btnCriar = new JButton("Criar campeonato");
+        UiTheme.stylePrimaryButton(btnCriar);
+        btnCriar.addActionListener(e -> criarCampeonato());
+        card.add(btnCriar, gbc);
 
-        add(principal, BorderLayout.CENTER);
-        atualizarListaClubes();
+        gbc.gridy = 5; gbc.insets = new Insets(0, 0, 0, 0);
+        labelStatus = new JLabel(" ");
+        labelStatus.setHorizontalAlignment(SwingConstants.CENTER);
+        UiTheme.styleStatusLabel(labelStatus);
+        card.add(labelStatus, gbc);
+
+        return card;
     }
 
     @Override
@@ -112,24 +119,26 @@ public class AdminCampeonatoUI extends JPanel implements AtualizavelInterface {
         atualizarListaClubes();
     }
 
-    private void criarCampeonato(ActionEvent e) {
+    private void criarCampeonato() {
         try {
-            String nomeCampeonato = txtNomeCampeonato.getText().trim();
+            String nome = txtNomeCampeonato.getText().trim();
             List<Clube> selecionados = new ArrayList<>(clubesSelecionados);
-            campeonatoService.criarCampeonato(nomeCampeonato, selecionados);
-            JOptionPane.showMessageDialog(this, "Campeonato '" + nomeCampeonato + "' criado com sucesso!");
+            campeonatoController.criarCampeonato(nome, selecionados);
+            UiTheme.setLabelSuccess(labelStatus, "Campeonato '" + nome + "' criado com sucesso!");
             txtNomeCampeonato.setText("");
             clubesSelecionados.clear();
+            lblContagem.setText("0 / 8 selecionados");
             listClubes.repaint();
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro de validação", JOptionPane.ERROR_MESSAGE);
+            UiTheme.setLabelError(labelStatus, ex.getMessage());
         }
     }
 
     private void atualizarListaClubes() {
         listModelClubes.clear();
         clubesSelecionados.clear();
-        for (Clube clube : clubeRepository.obterTodos()) {
+        lblContagem.setText("0 / 8 selecionados");
+        for (Clube clube : campeonatoController.listarClubes()) {
             listModelClubes.addElement(clube);
         }
         listClubes.repaint();
@@ -140,20 +149,15 @@ public class AdminCampeonatoUI extends JPanel implements AtualizavelInterface {
 
         @Override
         public Component getListCellRendererComponent(JList<? extends Clube> list,
-                                                      Clube value, int index,
-                                                      boolean isSelected, boolean cellHasFocus) {
+                Clube value, int index, boolean isSelected, boolean cellHasFocus) {
             checkBox.setText(value != null ? value.toString() : "");
             checkBox.setSelected(clubesSelecionados.contains(value));
-            checkBox.setBackground(UiTheme.BG_CARD);
+            checkBox.setBackground(index % 2 == 0 ? UiTheme.BG_CARD : UiTheme.BG_CARD_ALT);
             checkBox.setForeground(UiTheme.FG_PRIMARY);
+            checkBox.setFont(new Font(Font.DIALOG, Font.PLAIN, 13));
             checkBox.setOpaque(true);
-            checkBox.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
+            checkBox.setBorder(new EmptyBorder(4, 10, 4, 10));
             return checkBox;
         }
     }
 }
-
-
-
-
-

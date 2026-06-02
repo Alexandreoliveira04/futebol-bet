@@ -6,6 +6,7 @@ import br.com.futebolbet.models.Partida;
 import br.com.futebolbet.models.Participante;
 import br.com.futebolbet.models.Resultado;
 import br.com.futebolbet.repository.ApostaRepository;
+import br.com.futebolbet.repository.UsuarioRepository;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -15,34 +16,31 @@ import java.util.Set;
 
 public class ApostaService {
 
-    private ApostaRepository apostaRepository;
+    private final ApostaRepository apostaRepository;
+    private final UsuarioRepository usuarioRepository;
 
     public ApostaService() {
         this.apostaRepository = ApostaRepository.getInstance();
+        this.usuarioRepository = UsuarioRepository.getInstance();
     }
 
     public static void validarPlacarCoerenteComResultado(
             TipoResultado tipo, int golsCasa, int golsFora) throws Exception {
-        if (tipo == null) {
-            return;
-        }
+        if (tipo == null) return;
         switch (tipo) {
             case VITORIA_CASA:
-                if (golsCasa <= golsFora) {
+                if (golsCasa <= golsFora)
                     throw new Exception(
-                            "Para 'Vitória do mandante', o placar deve favorecer o time da casa (mais gols que o visitante).");
-                }
+                        "Para 'Vitória do mandante', o placar deve favorecer o time da casa.");
                 break;
             case VITORIA_FORA:
-                if (golsFora <= golsCasa) {
+                if (golsFora <= golsCasa)
                     throw new Exception(
-                            "Para 'Vitória do visitante', o placar deve favorecer o time de fora (mais gols que o mandante).");
-                }
+                        "Para 'Vitória do visitante', o placar deve favorecer o time de fora.");
                 break;
             case EMPATE:
-                if (golsCasa != golsFora) {
+                if (golsCasa != golsFora)
                     throw new Exception("Para 'Empate', os gols do mandante e do visitante devem ser iguais.");
-                }
                 break;
             default:
                 break;
@@ -52,7 +50,6 @@ public class ApostaService {
     public void registrarAposta(Aposta aposta) throws Exception {
         LocalDateTime agora = LocalDateTime.now();
         LocalDateTime horaPartida = aposta.getPartida().getDataHora();
-
         long minutosAtePartida = ChronoUnit.MINUTES.between(agora, horaPartida);
 
         if (minutosAtePartida < 20) {
@@ -61,22 +58,21 @@ public class ApostaService {
 
         validarPlacarCoerenteComResultado(
                 aposta.getResultadoEsperado(),
-                aposta.getGolsCasaEsperado().intValue(),
-                aposta.getGolsForaEsperado().intValue());
+                aposta.getGolsCasaEsperado(),
+                aposta.getGolsForaEsperado());
 
         apostaRepository.adicionar(aposta);
     }
 
     public void processarResultadosPartida(Partida partida) {
         Resultado resultadoReal = partida.getResultado();
-        if (resultadoReal == null) {
-            return;
-        }
+        if (resultadoReal == null) return;
 
         List<Aposta> apostasDaPartida = apostaRepository.obterPorPartida(partida);
 
         for (Aposta aposta : apostasDaPartida) {
             calcularPontuacao(aposta, resultadoReal);
+            apostaRepository.atualizarPontos(aposta);
         }
 
         Set<Participante> participantesAfetados = new HashSet<>();
@@ -94,6 +90,7 @@ public class ApostaService {
             total += a.getPontos() != null ? a.getPontos() : 0;
         }
         participante.definirPontos(total);
+        usuarioRepository.atualizarPontos(participante);
     }
 
     private void calcularPontuacao(Aposta aposta, Resultado resultadoReal) {
@@ -101,7 +98,8 @@ public class ApostaService {
         Integer golsForaReal = resultadoReal.getGolsFora();
         TipoResultado tipoResultadoReal = determinarTipoResultado(golsCasaReal, golsForaReal);
 
-        if (golsCasaReal.equals(aposta.getGolsCasaEsperado()) && golsForaReal.equals(aposta.getGolsForaEsperado())) {
+        if (golsCasaReal.equals(aposta.getGolsCasaEsperado())
+                && golsForaReal.equals(aposta.getGolsForaEsperado())) {
             aposta.setPontos(10);
         } else if (tipoResultadoReal == aposta.getResultadoEsperado()) {
             aposta.setPontos(5);
@@ -116,6 +114,3 @@ public class ApostaService {
         return TipoResultado.EMPATE;
     }
 }
-
-
-
